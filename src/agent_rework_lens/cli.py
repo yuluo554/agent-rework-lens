@@ -16,7 +16,9 @@ from .benchmark.runner import run_bench
 from .discovery import SOURCE_FILTERS
 from .engine.rework import VERDICT_INSUFFICIENT, VERDICT_NOT_REWORK
 from .errors import NoSourcesFound
-from .pipeline import run_scan, run_sources
+from .pipeline import build_report_model, run_scan, run_sources
+from .report.html import render_html
+from .report.markdown import render_markdown
 from .selftest import run_selftest
 from .stdio import _ensure_utf8_stdio
 
@@ -41,8 +43,20 @@ def build_parser() -> argparse.ArgumentParser:
     _add_source_args(sources)
     sources.add_argument("--json", action="store_true", help="输出机读 JSON")
 
-    scan = subparsers.add_parser("scan", help="发现 → 解析 → IR 摘要（引擎结论 M3 接入）")
+    scan = subparsers.add_parser("scan", help="发现 → 解析 → IR → 引擎判定 → 报告（M5 全链路）")
     _add_source_args(scan)
+    scan.add_argument(
+        "--report-md",
+        default=None,
+        metavar="PATH",
+        help="把分析报告写为 Markdown 文件（默认报告形态；不传则只输出摘要）",
+    )
+    scan.add_argument(
+        "--report-html",
+        default=None,
+        metavar="PATH",
+        help="把分析报告写为 HTML 文件（零外链、可离线打开）",
+    )
 
     selftest = subparsers.add_parser("selftest", help="内置自检")
     selftest.add_argument("--json", action="store_true", help="输出机读 JSON")
@@ -191,6 +205,21 @@ def _cmd_scan(args: argparse.Namespace) -> int:
         )
         for anchor in finding.evidence:
             print("    [evidence] %s" % anchor)
+
+    # 报告落盘（M5）：渲染器只消费模型（K6）；文件内容与 CLI 摘要同一处引擎产出
+    written = []
+    if args.report_md:
+        content = render_markdown(build_report_model(outcome))
+        with open(args.report_md, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(content)
+        written.append(("%s（Markdown）" % args.report_md, content))
+    if args.report_html:
+        content = render_html(build_report_model(outcome))
+        with open(args.report_html, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(content)
+        written.append(("%s（HTML）" % args.report_html, content))
+    for name, _ in written:
+        print("报告已写入：%s" % name)
     return ec.OK
 
 

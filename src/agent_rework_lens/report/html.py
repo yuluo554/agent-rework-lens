@@ -49,16 +49,20 @@ def render_html(model: ReportModel) -> str:
 
     parts.append("<h2>返工文件 Top</h2>")
     if model.rework_findings:
-        parts.append("<table><thead><tr><th>文件</th><th>判定</th><th>版本数</th><th>Edit 次数</th><th>理由</th></tr></thead><tbody>")
+        parts.append(
+            "<table><thead><tr><th>文件</th><th>判定</th><th>版本数</th><th>Edit 次数</th>"
+            "<th>理由</th><th>证据锚点</th></tr></thead><tbody>"
+        )
         for item in model.rework_findings:
             parts.append(
-                "<tr><td>%s</td><td>%s</td><td>%s</td><td>%d</td><td>%s</td></tr>"
+                "<tr><td>%s</td><td>%s</td><td>%s</td><td>%d</td><td>%s</td><td>%s</td></tr>"
                 % (
                     _e(item.file_path),
                     _e(item.verdict),
                     "-" if item.version_count is None else str(item.version_count),
                     item.edit_count,
                     _e("、".join(item.reasons) or "-"),
+                    _e("、".join(item.evidence) or "-"),
                 )
             )
         parts.append("</tbody></table>")
@@ -68,14 +72,18 @@ def render_html(model: ReportModel) -> str:
     parts.append("<h2>重复候选 Top</h2>")
     parts.append('<p class="disclosure">%s</p>' % _e(DUP_DISCLOSURE))
     if model.dup_candidates:
-        parts.append("<table><thead><tr><th>新写符号</th><th>已存在符号</th><th>命中理由</th></tr></thead><tbody>")
+        parts.append(
+            "<table><thead><tr><th>新写符号</th><th>已存在符号</th>"
+            "<th>命中理由</th><th>证据（会话:锚点）</th></tr></thead><tbody>"
+        )
         for cand in model.dup_candidates:
             reason = cand.match_reason
             if cand.similarity is not None:
                 reason = "%s（相似度 %.2f）" % (reason, cand.similarity)
+            anchor = cand.new_evidence or cand.existing_evidence or "-"
             parts.append(
-                "<tr><td>%s</td><td>%s</td><td>%s</td></tr>"
-                % (_e(cand.new_symbol), _e(cand.existing_symbol), _e(reason))
+                "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
+                % (_e(cand.new_symbol), _e(cand.existing_symbol), _e(reason), _e(anchor))
             )
         parts.append("</tbody></table>")
     else:

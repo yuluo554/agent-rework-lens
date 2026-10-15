@@ -20,17 +20,18 @@ def render_markdown(model: ReportModel) -> str:
     lines.append("## 返工文件 Top")
     lines.append("")
     if model.rework_findings:
-        lines.append("| 文件 | 判定 | 版本数 | Edit 次数 | 理由 |")
-        lines.append("|---|---|---|---|---|")
+        lines.append("| 文件 | 判定 | 版本数 | Edit 次数 | 理由 | 证据锚点 |")
+        lines.append("|---|---|---|---|---|---|")
         for item in model.rework_findings:
             lines.append(
-                "| %s | %s | %s | %d | %s |"
+                "| %s | %s | %s | %d | %s | %s |"
                 % (
                     _esc(item.file_path),
                     _esc(item.verdict),
                     "-" if item.version_count is None else str(item.version_count),
                     item.edit_count,
                     _esc("、".join(item.reasons) or "-"),
+                    _esc("、".join(item.evidence) or "-"),
                 )
             )
     else:
@@ -42,15 +43,16 @@ def render_markdown(model: ReportModel) -> str:
     lines.append("> %s" % DUP_DISCLOSURE)
     lines.append("")
     if model.dup_candidates:
-        lines.append("| 新写符号 | 已存在符号 | 命中理由 |")
-        lines.append("|---|---|---|")
+        lines.append("| 新写符号 | 已存在符号 | 命中理由 | 证据（会话:锚点） |")
+        lines.append("|---|---|---|---|")
         for cand in model.dup_candidates:
             reason = cand.match_reason
             if cand.similarity is not None:
                 reason = "%s（相似度 %.2f）" % (reason, cand.similarity)
+            anchor = cand.new_evidence or cand.existing_evidence or "-"
             lines.append(
-                "| %s | %s | %s |"
-                % (_esc(cand.new_symbol), _esc(cand.existing_symbol), _esc(reason))
+                "| %s | %s | %s | %s |"
+                % (_esc(cand.new_symbol), _esc(cand.existing_symbol), _esc(reason), _esc(anchor))
             )
     else:
         lines.append("_无数据（未启用或未发现候选）。_")

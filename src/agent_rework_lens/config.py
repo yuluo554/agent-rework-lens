@@ -21,6 +21,8 @@ SYMBOL_SUFFIX_TOKENS = frozenset(
     {"helper", "util", "utils", "fn", "func", "impl", "wrapper"}
 )
 SUPPORTED_SYMBOL_LANGUAGES = frozenset({"python"})  # 首期仅 Python（其他语言显式未支持）
+# 写入文件扩展名 → 符号提取语言（支持集之外 → 上游显式披露跳过，不猜测）
+SYMBOL_LANGUAGE_BY_SUFFIX = {".py": "python"}
 
 # ── 路径发现口径（FR-1：显式参数 > 环境变量 > 默认位置） ────────────────
 DEFAULT_CLAUDE_HOME = "~/.claude"

@@ -2,7 +2,7 @@
 
 > **AI 代码"重复造轮子 + 返工"体检器** —— 扫描本机 Claude Code / Codex 会话日志，回答：**这次会话里 agent 有几成 Edit/Write 是在重写项目里已存在的工具函数？哪些文件被反复改回（返工）？** 纯本地、零模型、零上传。
 
-**状态**：🚧 开发中（M4 基准）——`version` / `sources` / `selftest` / `scan`（M3 引擎判定）/ `bench`（M4 合成基准）已可用；报告渲染于 M5。路线图见 [plan/06-里程碑.md](plan/06-里程碑.md)。
+**状态**：✅ 功能完整（M5）——`version` / `sources` / `selftest` / `scan`（引擎判定 + 报告落盘）/ `bench`（合成基准）全部可用；技术报告见 [docs/TECHNICAL-REPORT.md](docs/TECHNICAL-REPORT.md)。路线图见 [plan/06-里程碑.md](plan/06-里程碑.md)。
 
 ## 它回答什么
 
@@ -40,7 +40,8 @@ arl selftest                           # 内置自检
 | 1 | 内部错误（未预期异常）；`bench` 未达标/未启用（明确清单，**不冒充通过**） |
 | 2 | 用法错误 / 未知命令 |
 | 3 | 未发现可分析日志（明确提示，不伪造空报告） |
-| 4 | 阶段未就绪（开发中骨架期的明确拦截；已于 M2 退役） |
+
+> 编号 4（阶段未就绪）已于 M2 按 K2 流程退役（D-M2-1），不再使用、不复用。
 
 ## 基准（`arl bench`）
 
@@ -54,6 +55,32 @@ arl bench --data-dir <目录>
 - 达标 = 覆盖率门槛满足 + 全部样例 verdict/edit_count/版本链/符号候选与 truth 一致 + 证据锚点 100% 可溯源 + 冻结件 sha256 对账通过；
 - 未启用（数据目录缺失）与未达标（任一对账失败）均退出码 1，附明确清单——**空分母不冒充满分**；
 - 可证伪探活：注入缺陷（返工判定强行置空）→ 基准必须报未达标（实录见 plan/06 M4 节）。
+
+## 演示（`arl scan` + 报告落盘）
+
+```bash
+# 扫描本机会话（Claude + Codex 自动发现），输出人读摘要
+arl scan
+arl scan --claude-home <目录> --codex-home <目录>   # 显式指定日志位置
+
+# 同一分析落盘为报告（Markdown 默认形态 + HTML 可选，均零外链可离线打开）
+arl scan --report-md report.md
+arl scan --report-md report.md --report-html report.html
+```
+
+预期输出形态（摘要人读；报告章节与摘要同一处引擎产出，`tests/test_m5_report.py` 锁三方一致）：
+
+```text
+scan 完成：N 个会话，M 个工具事件，K 个 token 事件，P 条解析注记
+返工判定（阈值：版本 ≥ REWORK_MIN_VERSIONS 或编辑 ≥ REWORK_MIN_EDITS）：a 项 rework / b 项 insufficient_data / c 项 not_rework
+  - [claude_code] <会话 id>：工具事件 x，写事件 y，版本链 z 条
+  [verdict] rework <文件路径>：版本 3 / 编辑 4 / 跨度 1200s / 理由 versions>=N,edits>=M
+    [evidence] <会话源文件>:<行号>
+    [evidence] <版本快照 hash>@v3
+报告已写入：report.md（Markdown）
+```
+
+报告章节：返工文件 Top（含证据锚点列）/ 重复候选 Top（**必带"粗匹配 ≠ 确认重复"披露**）/ 会话指标（Read:Edit 比，分母 0 显式"未定义"）/ 注记（解析注记与显式披露，如未支持语言、Codex 源符号候选未启用）。空节显示"无数据"，不显示"一切正常"。
 
 ## 指标口径
 
@@ -93,7 +120,7 @@ arl bench --data-dir <目录>
 | [plan/01-题目文档.md](plan/01-题目文档.md) | 项目题全文（痛点锚点 / 任务 / 评分 / 边界） |
 | [plan/02–07](plan/06-里程碑.md) | 需求解读 / 架构 / 模块详设 / 数据计划 / 里程碑 / 交付对标 |
 | [data/README.md](data/README.md) | 数据台账（字段核对记录 / 合成数据纪律） |
-| `docs/TECHNICAL-REPORT.md` | 技术报告（M5） |
+| [docs/TECHNICAL-REPORT.md](docs/TECHNICAL-REPORT.md) | 技术报告（schema / 判定口径 / 确定性纪律 / 隐私设计） |
 
 ## License
 
