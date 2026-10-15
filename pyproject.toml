@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-rework-lens"
+version = "0.1.0"
+description = "Scan local Claude Code / Codex session logs for rework & wheel-reinvention signals. Local-only, deterministic, zero upload."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+authors = [{ name = "yuluo554" }]
+keywords = ["agent", "session-logs", "rework", "duplicate-code", "developer-tools", "local-only"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+# 运行时零第三方依赖（在线可跑、审计面小；见 plan/03 技术选型）
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4,<9"]
+
+[project.scripts]
+arl = "agent_rework_lens.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

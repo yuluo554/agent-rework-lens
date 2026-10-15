@@ -1,0 +1,21 @@
+# 源码归一 + 快照冻结（两半）：
+# ① 普通文本一律 LF 行尾；
+# ② 被台账登记过 sha256 的冻结快照必须标 -text（克隆/检出不得改写任何字节）。
+* text=auto eol=lf
+
+# 冻结合成数据（M1 起）：字节冻结，禁 EOL 归一化（sha256 与 manifest 对照）
+data/synthetic/** -text
+
+# 二进制
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.exe binary
+*.dll binary
+*.so binary
+*.whl binary
