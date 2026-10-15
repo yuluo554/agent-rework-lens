@@ -13,6 +13,7 @@ from typing import Optional, Sequence
 from . import __version__, config
 from . import exitcodes as ec
 from .discovery import SOURCE_FILTERS
+from .engine.rework import VERDICT_INSUFFICIENT, VERDICT_NOT_REWORK
 from .errors import NoSourcesFound
 from .pipeline import run_scan, run_sources
 from .selftest import run_selftest
@@ -129,14 +130,24 @@ def _cmd_sources(args: argparse.Namespace) -> int:
 def _cmd_scan(args: argparse.Namespace) -> int:
     outcome = run_scan(args.claude_home, args.codex_home, args.source)
 
-    # M2 摘要：只含会话/事件/注记计数（K6 零判定零外链零时钟；引擎结论 M3 接入）
     print(
-        "scan 完成：%d 个会话，%d 个工具事件，%d 个 token 事件，%d 条解析注记（引擎结论 M3 接入）"
+        "scan 完成：%d 个会话，%d 个工具事件，%d 个 token 事件，%d 条解析注记"
         % (
             len(outcome.sessions),
             outcome.tool_event_count,
             outcome.token_event_count,
             outcome.note_count,
+        )
+    )
+    # 引擎摘要（M3）：阈值取 config 运行时值（K1 单点引用）；判定零外链零时钟（K6/K11）
+    print(
+        "返工判定（阈值：版本 ≥ %d 或编辑 ≥ %d）：%d 项 rework / %d 项 insufficient_data / %d 项 not_rework"
+        % (
+            config.REWORK_MIN_VERSIONS,
+            config.REWORK_MIN_EDITS,
+            outcome.rework_count,
+            sum(1 for f in outcome.findings if f.verdict == VERDICT_INSUFFICIENT),
+            sum(1 for f in outcome.findings if f.verdict == VERDICT_NOT_REWORK),
         )
     )
     for session in outcome.sessions:
@@ -154,6 +165,21 @@ def _cmd_scan(args: argparse.Namespace) -> int:
         )
         for note in session.ir.notes:
             print("    [note] %s ×%d：%s" % (note.code, note.count, note.message))
+    for finding in outcome.findings:
+        span = "%.0fs" % finding.span_seconds if finding.span_seconds is not None else "未知（时间戳缺失）"
+        print(
+            "  [verdict] %s %s：版本 %s / 编辑 %d / 跨度 %s / 理由 %s"
+            % (
+                finding.verdict,
+                finding.file_path,
+                "缺失" if finding.version_count is None else str(finding.version_count),
+                finding.edit_count,
+                span,
+                ",".join(finding.reasons),
+            )
+        )
+        for anchor in finding.evidence:
+            print("    [evidence] %s" % anchor)
     return ec.OK
 
 

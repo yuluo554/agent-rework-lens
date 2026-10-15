@@ -20,10 +20,11 @@ from .discovery import (
     DiscoveryResult,
     discover_sources,
 )
+from .engine.rework import VERDICT_REWORK, ReworkFinding, analyze_rework
 from .errors import NoSourcesFound
 from .ir import KIND_EDIT, KIND_MULTIEDIT, KIND_WRITE, SessionIR
 from .parsers import parse_claude_session, parse_codex_session
-from .parsers.claude_code import read_version_chains
+from .parsers.claude_code import read_snapshot_file_map, read_version_chains
 
 
 @dataclass(frozen=True)
@@ -57,12 +58,17 @@ class ParsedSession:
 
 @dataclass(frozen=True)
 class ScanOutcome:
-    """scan 第一阶段（M2）：发现 → 解析 → IR 摘要（零判定零外链零时钟，K6）。"""
+    """scan 全链路（M3）：发现 → 解析 → IR → 引擎判定。
+
+    ``findings`` 汇总各会话的返工判定（附 ``session_id`` 溯源）；M4 报告层在
+    此之上渲染。摘要文本输出仍带解析注记（K7 显式可见）。
+    """
 
     discovery: DiscoveryResult
     sessions: Tuple[ParsedSession, ...]
     # {session_id: {hash_stem: chain}}（仅 Claude 源有绑定）
     version_chains: Dict[str, Dict[str, dict]]
+    findings: Tuple[ReworkFinding, ...] = ()
 
     @property
     def tool_event_count(self) -> int:
@@ -75,6 +81,10 @@ class ScanOutcome:
     @property
     def note_count(self) -> int:
         return sum(len(s.ir.notes) for s in self.sessions)
+
+    @property
+    def rework_count(self) -> int:
+        return sum(1 for f in self.findings if f.verdict == VERDICT_REWORK)
 
 
 def run_sources(
@@ -90,10 +100,10 @@ def run_scan(
     codex_home: Optional[str] = None,
     source_filter: str = "auto",
 ) -> ScanOutcome:
-    """全链路 scan 第一阶段：发现 → 解析 → 统一 IR（确定性输出）。
+    """全链路 scan：发现 → 解析 → 统一 IR → 引擎返工判定（确定性输出）。
 
-    M2 语义：解析层已启用（K2：退出码 4 的"解析层"项退役）；引擎与报告于 M3/M4
-    接入——摘要只含计数，不含任何返工/重复判定。
+    M3 语义：引擎已接入（verdict 三态 + reasons + 证据锚点）；报告渲染于 M4/M5。
+    判定阈值取 config 单点（K1）；版本链只实读不反推（K4）。
     """
     discovery = discover_sources(claude_home, codex_home, source_filter)
     if not discovery.locations:
@@ -113,28 +123,33 @@ def run_scan(
 
     sessions: List[ParsedSession] = []
     chains_by_session: Dict[str, Dict[str, dict]] = {}
+    findings: List[ReworkFinding] = []
 
     if claude_sessions_loc is not None:
         for file_path in claude_sessions_loc.files:
             ir = parse_claude_session(file_path)
-            sessions.append(
-                ParsedSession(ir=ir, version_chains=claude_chains.get(ir.meta.session_id, {}))
-            )
+            session_chains = claude_chains.get(ir.meta.session_id, {})
+            snap_map = read_snapshot_file_map(file_path)
+            sessions.append(ParsedSession(ir=ir, version_chains=session_chains))
             if ir.meta.session_id in claude_chains:
                 chains_by_session[ir.meta.session_id] = claude_chains[ir.meta.session_id]
+            findings.extend(analyze_rework(ir, session_chains, snap_map))
 
     codex_loc = _find_location(discovery, KIND_CODEX_SESSIONS)
     if codex_loc is not None:
         for file_path in codex_loc.files:
             ir = parse_codex_session(file_path)
             sessions.append(ParsedSession(ir=ir, version_chains={}))
+            findings.extend(analyze_rework(ir, {}, {}))
 
     # 确定性输出：按 (source, session_id, source_file) 排序
     sessions.sort(key=lambda s: (s.ir.meta.source, s.ir.meta.session_id, s.ir.meta.source_file))
+    findings.sort(key=lambda f: (f.session_id, f.file_path, f.verdict))
     return ScanOutcome(
         discovery=discovery,
         sessions=tuple(sessions),
         version_chains=chains_by_session,
+        findings=tuple(findings),
     )
 
 

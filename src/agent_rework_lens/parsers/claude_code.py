@@ -213,6 +213,50 @@ def _bump_note(notes: List[ParseNote], index: Dict[Tuple[str, str], int], code: 
 # ── file-history 实读（版本链；K4：只实读不反推） ─────────────────────────
 
 
+# ── 会话文件快照实读（R6：file_path → backupFileName 关联键，引擎用） ──────
+
+
+def read_snapshot_file_map(session_path) -> Dict[str, dict]:
+    """实读单个会话 jsonl 的快照行 → ``{file_path: {backup_stem, max_version}}``。
+
+    依据 R6：``trackedFileBackups`` 键 = 被跟踪真实文件路径，entry 的
+    ``backupFileName``（如 ``89b13e3cd80c18a9@v1``）精确命中
+    ``file-history/<session-uuid>/<backupFileName>`` → 关联键 = backupFileName。
+    只取已核对字段（``backupFileName`` / ``version``，K7）；``version`` 高于文件名
+    内嵌 N 时以文件名为准（R1：``@vN`` 文件名是唯一可用证据）；无 ``@vN`` 形态的
+    backupFileName → 证据不可用，跳过（同 K4 纪律，不猜测）。
+    """
+    session_path = Path(session_path)
+    version_re = re.compile(r"@v(\d+)(?:\.[^@\\/]*)?$")
+    latest: Dict[str, dict] = {}
+    for _line_number, obj, error in iter_jsonl_lines(session_path):
+        if error is not None or not isinstance(obj, dict):
+            continue
+        if obj.get("type") != "file-history-snapshot":
+            continue
+        snapshot = obj.get("snapshot")
+        if not isinstance(snapshot, dict):
+            continue
+        tracked = snapshot.get("trackedFileBackups")
+        if not isinstance(tracked, dict):
+            continue
+        for file_path, entry in tracked.items():
+            if not isinstance(file_path, str) or not isinstance(entry, dict):
+                continue
+            backup_name = entry.get("backupFileName")
+            if not isinstance(backup_name, str):
+                continue
+            match = version_re.search(backup_name)
+            if not match:
+                continue
+            stem = backup_name[: match.start()]
+            version = int(match.group(1))
+            current = latest.get(file_path)
+            if current is None or version > current["max_version"]:
+                latest[file_path] = {"backup_stem": stem, "max_version": version}
+    return latest
+
+
 def read_version_chains(history_dir) -> Dict[str, Dict[str, dict]]:
     """实读 ``<claude_home>/file-history/<session uuid>/`` → 版本链结构。
 

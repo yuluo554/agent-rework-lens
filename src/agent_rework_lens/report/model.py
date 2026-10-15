@@ -8,8 +8,9 @@ from typing import Tuple
 from ..engine.metrics import DupCandidate, SessionMetrics
 from ..engine.rework import ReworkFinding
 
-# 粗匹配披露文本（K5）：凡输出候选之处必须携带。
-DUP_DISCLOSURE = "粗匹配 ≠ 确认重复：以下为候选信号（符号名归一化/高相似度），需人工复核。"
+# 粗匹配披露文本（K5）：凡输出候选之处必须携带。单点定义在引擎 metrics 层（候选产生处），
+# 报告层只引用同一常量——文本改动一处生效。
+from ..engine.metrics import DUP_DISCLOSURE  # noqa: F401  （re-export，K5 单点）
 
 
 @dataclass(frozen=True)

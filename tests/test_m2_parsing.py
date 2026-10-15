@@ -188,8 +188,9 @@ def test_run_scan_counts_and_chains(tmp_path):
     assert len(session.version_chains) == 1
     stem_chain = next(iter(session.version_chains.values()))
     assert stem_chain["max_version"] == 3
-    # scan 摘要零判定：引擎结论字段不存在（K6）
-    assert not hasattr(outcome, "findings")
+    # M3 起引擎接入：findings 存在且含 rework 判定（判定只来自引擎，K6 渲染纪律不变）
+    assert len(outcome.findings) == 1
+    assert outcome.findings[0].verdict == "rework"
 
 
 # ── 容错：坏行 / 空文件 / 二进制快照 / null entry / 未核对字段 ────────────
