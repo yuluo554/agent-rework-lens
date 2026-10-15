@@ -23,6 +23,7 @@
 | [HANDOFF-M3.md](HANDOFF-M3.md) | M2 收尾 → M3 引擎交接（解析口径落地 / scan 摘要 / 退出码 4 退役实录） | ✅ M2 收尾生成 2026-10-15 |
 | [HANDOFF-M4.md](HANDOFF-M4.md) | M3 收尾 → M4 基准交接（引擎判定落地 / 阈值校准定稿 / 链归属口径） | ✅ M3 收尾生成 2026-10-15 |
 | [HANDOFF-M5.md](HANDOFF-M5.md) | M4 收尾 → M5 交付交接（bench 全对账 / 探活实录 / README 指标口径成稿） | ✅ M4 收尾生成 2026-10-15 |
+| [HANDOFF-M6.md](HANDOFF-M6.md) | M5 收尾 → M6 发布交接（报告成稿 / 技术报告 / 干净环境验证 / **发布前置清单**） | ✅ M5 收尾生成 2026-10-15 |
 
 ## 决策记录
 
@@ -55,7 +56,7 @@
 | 会话日志解析器（Claude Code + Codex 双源 → 统一 IR） | `~/.claude/projects/*/*.jsonl` ✅ 本机 125 个 + `~/.codex/sessions/**/rollout-*.jsonl` ✅ 本机 220 个 | 解析器随包；零第三方重依赖 | 同一日志 → 同一 IR；双源样例逐字段核对 | ✅ M2（11 case truth 回归 + 双跑 IR 一致；见 HANDOFF-M3.md） |
 | **返工检测引擎**（版本快照链 v1→v2→v3 反复覆盖 / 同文件多次 Edit） | `~/.claude/file-history/<session>/<hash>@vN` ✅ 本机 68 个快照 / 9 会话（`trackedFileBackups` 结构实测） | 返工检测随包（读本地快照，不上传） | 合成会话植入真值对账；真实样本人工抽验 | ✅ M3（11 case 引擎 truth 对账 + 阈值单点测试；见 HANDOFF-M4.md） |
 | Read:Edit 比与"新建 vs 复用"指标 | 会话 IR 的 read/edit/write 事件 + 符号提取 | 指标随包；阈值口径一处定义 | 合成基准逐例核验；阈值改一处全链路同变 | ✅ M3（除零 → None / 归一化冻结口径 / K5 披露单点；见 HANDOFF-M4.md） |
-| 报告输出（本地 HTML / Markdown） | 引擎结果 + 证据锚点（会话 id / 行号 / 版本文件名） | 报告为纯本地文件，零上传 | 报告只渲染结果（零判定逻辑）；锚点可回溯 | ⬜ 待 M5 |
+| 报告输出（本地 HTML / Markdown） | 引擎结果 + 证据锚点（会话 id / 行号 / 版本文件名） | 报告为纯本地文件，零上传 | 报告只渲染结果（零判定逻辑）；锚点可回溯 | ✅ M5（`--report-md/--report-html` + 锚点列 + 披露制 + 三方对账锁测试；见 HANDOFF-M6.md） |
 | **合成会话基准 + 植入真值** | 程序化生成的假项目名 / 假路径会话日志 | 基准零外部依赖、零 API，一条命令复现 | 真值由生成器同步标注；指标口径进 README | ✅ M4（`arl bench` 11 case truth 全对账 + 覆盖率门槛 manifest 强制 + 探活变异；见 HANDOFF-M5.md） |
 | 官方文档锚点（transcript 路径 / 字段） | Claude Code hooks 文档 ✅ 直连核对 | 文档引用 | 字段名 `session_id` / `transcript_path` / `cwd` 已在文档 "Common input fields" 核到 | ✅ **已核对**（2026-10-15） |
 | 发布闭环（tag + Release + 留档） | GitHub 公开仓库 | Release 附源码 zip + 留档 sha256 | 本地留有产物副本可 sha256 复验 | ⬜ 待 M6 |
@@ -71,7 +72,7 @@
 | M2 | 会话日志解析：双源 → 统一中间表示（Unified Session IR），路径自适应发现，缺失字段标 `unknown` | ✅ 完成 2026-10-15（双源解析器 + file-history 实读 + scan 接入；退出码 4 退役；详见 [06](06-里程碑.md) 与 [HANDOFF-M3.md](HANDOFF-M3.md)） |
 | M3 | 指标算法：返工检测（版本链 + Edit 次数）+ Read:Edit 比 + "新建 vs 复用"粗匹配（阈值一处定义） | ✅ 完成 2026-10-15（三态判定 + 链归属实读 + 阈值校准定稿 D-M3-1；详见 [06](06-里程碑.md) 与 [HANDOFF-M4.md](HANDOFF-M4.md)） |
 | M4 | 基准：合成会话基准跑通，检测率 / 误报率口径进 README，一条命令复现 | ✅ 完成 2026-10-15（`arl bench` 11 case truth 全对账 + 覆盖率门槛 manifest 强制 + 探活变异；详见 [06](06-里程碑.md) 与 [HANDOFF-M5.md](HANDOFF-M5.md)） |
-| M5 | 交付：CLI + 报告输出（Markdown / HTML）+ 技术报告 + README 演示 | ⬜ 待开工 |
+| M5 | 交付：CLI + 报告输出（Markdown / HTML）+ 技术报告 + README 演示 | ✅ 完成 2026-10-15（报告成稿 + docs/TECHNICAL-REPORT.md + 干净环境双 venv 逐条跑；详见 [06](06-里程碑.md) 与 [HANDOFF-M6.md](HANDOFF-M6.md)） |
 | M6 | 发布：**git tag + GitHub Release 附产物 + 发布留档三件套**，发布 GitHub **公开**仓库 | ⬜ 待开工 |
 | M7 | 收尾固化（发布后）：topics/元信息核验、材料固化、缓议项清零、品牌隔离复查 | ⬜ 待开工 |
 
