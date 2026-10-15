@@ -2,7 +2,7 @@
 
 > **AI 代码"重复造轮子 + 返工"体检器** —— 扫描本机 Claude Code / Codex 会话日志，回答：**这次会话里 agent 有几成 Edit/Write 是在重写项目里已存在的工具函数？哪些文件被反复改回（返工）？** 纯本地、零模型、零上传。
 
-**状态**：✅ 功能完整（M5）——`version` / `sources` / `selftest` / `scan`（引擎判定 + 报告落盘）/ `bench`（合成基准）全部可用；技术报告见 [docs/TECHNICAL-REPORT.md](docs/TECHNICAL-REPORT.md)。路线图见 [plan/06-里程碑.md](plan/06-里程碑.md)。
+**状态**：🚀 已发布 [v0.1.0-m6](https://github.com/yuluo554/agent-rework-lens/releases/tag/v0.1.0-m6)——`version` / `sources` / `selftest` / `scan`（引擎判定 + 报告落盘）/ `bench`（合成基准）全部可用；CI 三腿（ubuntu 3.8/3.12 · windows 3.12）全绿；技术报告见 [docs/TECHNICAL-REPORT.md](docs/TECHNICAL-REPORT.md)。路线图见 [plan/06-里程碑.md](plan/06-里程碑.md)。
 
 ## 它回答什么
 
