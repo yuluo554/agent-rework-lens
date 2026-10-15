@@ -2,7 +2,7 @@
 
 > **AI 代码"重复造轮子 + 返工"体检器** —— 扫描本机 Claude Code / Codex 会话日志，回答：**这次会话里 agent 有几成 Edit/Write 是在重写项目里已存在的工具函数？哪些文件被反复改回（返工）？** 纯本地、零模型、零上传。
 
-**状态**：🚧 开发中（M0 骨架）——`version` / `sources` / `selftest` 已可用；`scan` 于 M2 起启用（当前以退出码 4 明确拦截，**不产出假报告**）。路线图见 [plan/06-里程碑.md](plan/06-里程碑.md)。
+**状态**：🚧 开发中（M4 基准）——`version` / `sources` / `selftest` / `scan`（M3 引擎判定）/ `bench`（M4 合成基准）已可用；报告渲染于 M5。路线图见 [plan/06-里程碑.md](plan/06-里程碑.md)。
 
 ## 它回答什么
 
@@ -36,16 +36,54 @@ arl selftest                           # 内置自检
 
 | 码 | 含义 |
 |---|---|
-| 0 | 成功 |
-| 1 | 内部错误（未预期异常） |
+| 0 | 成功（含 `bench` 达标） |
+| 1 | 内部错误（未预期异常）；`bench` 未达标/未启用（明确清单，**不冒充通过**） |
 | 2 | 用法错误 / 未知命令 |
 | 3 | 未发现可分析日志（明确提示，不伪造空报告） |
-| 4 | 阶段未就绪（开发中骨架期的明确拦截；M2 起逐项退役） |
+| 4 | 阶段未就绪（开发中骨架期的明确拦截；已于 M2 退役） |
+
+## 基准（`arl bench`）
+
+```bash
+arl bench                 # 合成基准：11 个样例逐例与 truth.json 对账
+arl bench --json          # 机读输出（确定性 sort_keys）
+arl bench --data-dir <目录>
+```
+
+- 数据：`data/synthetic/`（M1 冻结 fixtures，`tools/gen_synthetic.py --check` 位级复验）；**门槛数值只来自 `manifest.json`**，代码与文档零数值；
+- 达标 = 覆盖率门槛满足 + 全部样例 verdict/edit_count/版本链/符号候选与 truth 一致 + 证据锚点 100% 可溯源 + 冻结件 sha256 对账通过；
+- 未启用（数据目录缺失）与未达标（任一对账失败）均退出码 1，附明确清单——**空分母不冒充满分**；
+- 可证伪探活：注入缺陷（返工判定强行置空）→ 基准必须报未达标（实录见 plan/06 M4 节）。
 
 ## 指标口径
 
-- 所有**阈值与口径定义集合只在 [`src/agent_rework_lens/config.py`](src/agent_rework_lens/config.py) 一处定义**——报告、基准、生成器与文档一律引用，不写第二份数值；
-- 完整口径（Read:Edit 比的分子/分母、返工判据、粗匹配归一化规则）随 M3/M4 定稿进本 README 与 [plan/04-模块详设.md](plan/04-模块详设.md)。
+### 返工判据（M3 定稿）
+
+1. **版本判据**：同一文件在 `file-history` 版本快照链中出现 ≥ `REWORK_MIN_VERSIONS` 个版本 → rework；
+2. **编辑判据**：单会话内同一文件被 Edit ≥ `REWORK_MIN_EDITS` 次 → rework；
+3. 两条都不成立且**版本链缺失**（有 Edit、链应存在而缺失）→ `insufficient_data`（不反推，K4）；
+4. 两条都不成立且链存在 / 纯 Write 新建（首写不备份，无链属正常）→ `not_rework`。
+5. Codex 源无 file-history：版本数恒缺失，判据以 apply_patch 写事件计数为主，不判 insufficient_data。
+
+数值见 [`src/agent_rework_lens/config.py`](src/agent_rework_lens/config.py)（`REWORK_MIN_VERSIONS` / `REWORK_MIN_EDITS` / `DUP_MATCH_THRESHOLD`）——**文档不抄数值**，以该单点为准。
+
+### Read:Edit 比
+
+分子 = Read 事件数（`READ_EVENT_KINDS`）；分母 = 写事件数（Edit/Write/MultiEdit，`WRITE_EVENT_KINDS`）；分母为 0 → 比值"未定义"（`None`，**不填 0 不填 inf**）。
+
+### 粗匹配（"新建 vs 复用"候选）
+
+- 归一化 5 步（冻结口径）：① 转小写；② `-`→`_`；③ 去首尾 `_`；④ 首段命中 `SYMBOL_PREFIX_TOKENS` 或尾段命中 `SYMBOL_SUFFIX_TOKENS` → 剔除（可迭代）；⑤ 剩余 token 拼接；
+- 匹配两级：归一化精确相等 → `normalized_exact`；否则 `difflib` ratio ≥ `DUP_MATCH_THRESHOLD` → `high_similarity`（附 ratio）；
+- **披露制**：任何候选输出伴随披露文本——**粗匹配 ≠ 确认重复**，候选仅为信号，需人工复核。
+
+### 证据锚点
+
+每条结论持 `(源文件:行号)` 与版本快照文件名（`<hash>@vN`）锚点，`bench` 要求可溯源率 100%。
+
+### 门槛来源
+
+`bench` 的覆盖率门槛**只读 `data/synthetic/manifest.json`**（`coverage.min_count_by_type`）——代码中不存在第二份数值；`tests/test_m4_bench.py` 锁死这一来源关系。
 
 ## 文档
 

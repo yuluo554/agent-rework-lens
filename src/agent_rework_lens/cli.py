@@ -12,6 +12,7 @@ from typing import Optional, Sequence
 
 from . import __version__, config
 from . import exitcodes as ec
+from .benchmark.runner import run_bench
 from .discovery import SOURCE_FILTERS
 from .engine.rework import VERDICT_INSUFFICIENT, VERDICT_NOT_REWORK
 from .errors import NoSourcesFound
@@ -46,6 +47,14 @@ def build_parser() -> argparse.ArgumentParser:
     selftest = subparsers.add_parser("selftest", help="内置自检")
     selftest.add_argument("--json", action="store_true", help="输出机读 JSON")
 
+    bench = subparsers.add_parser("bench", help="合成会话基准评测（truth 对账 + 覆盖率门槛）")
+    bench.add_argument(
+        "--data-dir",
+        default=None,
+        help="基准数据目录（默认仓库内 data/synthetic；缺失 → 套件未启用，退出码 1）",
+    )
+    bench.add_argument("--json", action="store_true", help="输出机读 JSON")
+
     return parser
 
 
@@ -75,6 +84,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return _cmd_scan(args)
         if args.command == "selftest":
             return _cmd_selftest(args)
+        if args.command == "bench":
+            return _cmd_bench(args)
     except NoSourcesFound as exc:
         print(exc.detail or "未发现可分析日志源。", file=sys.stderr)
         return ec.NO_SOURCES
@@ -198,3 +209,106 @@ def _cmd_selftest(args: argparse.Namespace) -> int:
         for c in result.checks:
             print("[%s] %s — %s" % (c.status, c.name, c.detail or ""))
     return ec.OK if result.ok else ec.INTERNAL_ERROR
+
+
+def _cmd_bench(args: argparse.Namespace) -> int:
+    """合成基准评测（plan/04 §9）。
+
+    退出码三语义：0 = 达标；1 = 未达标/未启用（明确清单，不冒充通过）；2 = 用法
+    （argparse 层）。人读输出中文、机读 JSON 确定性（sort_keys）。
+    """
+    result = run_bench(args.data_dir)
+
+    if args.json:
+        payload = {
+            "command": "bench",
+            "data_dir": result.data_dir,
+            "not_enabled": result.not_enabled,
+            "not_enabled_detail": result.not_enabled_detail,
+            "manifest_schema": result.manifest_schema,
+            "passed": result.passed,
+            "coverage": {
+                "required": dict(sorted(result.coverage.required.items())),
+                "actual": dict(sorted(result.coverage.actual.items())),
+            },
+            "summary": {
+                "case_count": result.case_count,
+                "rework_hit": result.rework_hit,
+                "rework_total": result.rework_total,
+                "false_positive": result.false_positive,
+                "not_rework_total": result.not_rework_total,
+                "anchor_ok": result.anchor_ok,
+                "anchor_total": result.anchor_total,
+            },
+            "cases": [
+                {
+                    "case_id": c.case_id,
+                    "case_type": c.case_type,
+                    "source": c.source,
+                    "expected_verdict": c.expected_verdict,
+                    "ok": c.ok,
+                    "verdict_ok": c.verdict_ok,
+                    "metrics_ok": c.metrics_ok,
+                    "dup_ok": c.dup_ok,
+                    "hash_ok": c.hash_ok,
+                    "anchor_ok": c.anchor_ok,
+                    "anchor_total": c.anchor_total,
+                    "failures": c.failures(),
+                }
+                for c in result.cases
+            ],
+            "failures": result.failures(),
+        }
+        print(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2))
+        return ec.OK if result.passed else ec.INTERNAL_ERROR
+
+    if result.not_enabled:
+        print("基准套件未启用：%s" % result.not_enabled_detail)
+        print("说明：未启用 ≠ 通过（空分母不冒充满分）。退出码 1。")
+        return ec.INTERNAL_ERROR
+
+    print(
+        "合成基准评测（%s）：manifest schema=%s"
+        % (result.data_dir, result.manifest_schema)
+    )
+    print(
+        "覆盖率门槛（数值只来自 manifest）：要求 %s / 实际 %s"
+        % (
+            dict(sorted(result.coverage.required.items())),
+            dict(sorted(result.coverage.actual.items())),
+        )
+    )
+    print(
+        "对账汇总：%d 样例；rework 命中 %d/%d；误报 %d/%d（not_rework 总数）；锚点可溯源 %d/%d"
+        % (
+            result.case_count,
+            result.rework_hit,
+            result.rework_total,
+            result.false_positive,
+            result.not_rework_total,
+            result.anchor_ok,
+            result.anchor_total,
+        )
+    )
+    for case in result.cases:
+        status = "OK" if case.ok else "FAIL"
+        line = "  [%s] %s（%s/%s → 期望 %s）" % (
+            status,
+            case.case_id,
+            case.source,
+            case.case_type,
+            case.expected_verdict,
+        )
+        if case.ok:
+            print(line)
+        else:
+            print(line)
+            for failure in case.failures():
+                print("      - %s" % failure)
+    for failure in result.coverage.failures():
+        print("  [覆盖率] %s" % failure)
+    if result.passed:
+        print("结论：达标。")
+        return ec.OK
+    print("结论：未达标（清单见上）。退出码 1。")
+    return ec.INTERNAL_ERROR
