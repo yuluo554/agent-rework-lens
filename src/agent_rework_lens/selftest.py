@@ -89,12 +89,12 @@ def _check_config_presence() -> CheckResult:
 
 def _check_exitcode_map() -> CheckResult:
     name = "退出码映射"
-    values = (ec.OK, ec.INTERNAL_ERROR, ec.USAGE_ERROR, ec.NO_SOURCES, ec.STAGE_NOT_READY)
+    values = (ec.OK, ec.INTERNAL_ERROR, ec.USAGE_ERROR, ec.NO_SOURCES)
     if len(set(values)) != len(values):
         return CheckResult(name, STATUS_FAIL, "退出码常量存在重复值")
     if values != tuple(ec.ALL_CODES):
         return CheckResult(name, STATUS_FAIL, "ALL_CODES 与常量定义不一致")
-    return CheckResult(name, STATUS_OK, "5 个退出码互异且映射完整")
+    return CheckResult(name, STATUS_OK, "%d 个退出码互异且映射完整" % len(values))
 
 
 def _check_stdio_guard() -> CheckResult:

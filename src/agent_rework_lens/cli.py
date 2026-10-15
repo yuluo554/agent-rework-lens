@@ -13,7 +13,7 @@ from typing import Optional, Sequence
 from . import __version__, config
 from . import exitcodes as ec
 from .discovery import SOURCE_FILTERS
-from .errors import NoSourcesFound, StageNotReady
+from .errors import NoSourcesFound
 from .pipeline import run_scan, run_sources
 from .selftest import run_selftest
 from .stdio import _ensure_utf8_stdio
@@ -39,7 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_source_args(sources)
     sources.add_argument("--json", action="store_true", help="输出机读 JSON")
 
-    scan = subparsers.add_parser("scan", help="全链路分析（开发中：M2 起启用，当前明确拦截）")
+    scan = subparsers.add_parser("scan", help="发现 → 解析 → IR 摘要（引擎结论 M3 接入）")
     _add_source_args(scan)
 
     selftest = subparsers.add_parser("selftest", help="内置自检")
@@ -77,10 +77,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     except NoSourcesFound as exc:
         print(exc.detail or "未发现可分析日志源。", file=sys.stderr)
         return ec.NO_SOURCES
-    except StageNotReady as exc:
-        print("阶段未就绪：%s" % exc, file=sys.stderr)
-        print("（开发中骨架期说明见 plan/06-里程碑.md；未核对字段不得进入指标计算路径。）", file=sys.stderr)
-        return ec.STAGE_NOT_READY
 
     # argparse 已保证命令走遍全部分支；防御性兜底
     parser.error("未知命令: %r" % (args.command,))
@@ -131,8 +127,34 @@ def _cmd_sources(args: argparse.Namespace) -> int:
 
 
 def _cmd_scan(args: argparse.Namespace) -> int:
-    run_scan(args.claude_home, args.codex_home, args.source)
-    return ec.OK  # M2 起在报告落盘后到达此处
+    outcome = run_scan(args.claude_home, args.codex_home, args.source)
+
+    # M2 摘要：只含会话/事件/注记计数（K6 零判定零外链零时钟；引擎结论 M3 接入）
+    print(
+        "scan 完成：%d 个会话，%d 个工具事件，%d 个 token 事件，%d 条解析注记（引擎结论 M3 接入）"
+        % (
+            len(outcome.sessions),
+            outcome.tool_event_count,
+            outcome.token_event_count,
+            outcome.note_count,
+        )
+    )
+    for session in outcome.sessions:
+        meta = session.ir.meta
+        chain_summary = "，版本链 %d 条" % len(session.version_chains) if session.version_chains else ""
+        print(
+            "  - [%s] %s：工具事件 %d，写事件 %d%s"
+            % (
+                meta.source,
+                meta.session_id,
+                len(session.ir.tool_events),
+                session.write_event_count,
+                chain_summary,
+            )
+        )
+        for note in session.ir.notes:
+            print("    [note] %s ×%d：%s" % (note.code, note.count, note.message))
+    return ec.OK
 
 
 def _cmd_selftest(args: argparse.Namespace) -> int:

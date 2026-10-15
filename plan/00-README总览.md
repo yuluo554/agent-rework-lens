@@ -20,6 +20,7 @@
 | [07-交付对标与决策记录.md](07-交付对标与决策记录.md) | 提交材料与评分标准逐项对标、决策记录（M0 起）、既定口径清单 K1–K12、诚实口径 | ✅ M0 定稿 2026-10-15 |
 | [HANDOFF-M1.md](HANDOFF-M1.md) | 里程碑交接记录（每棒 DoD 达成后必须写完下一棒 HANDOFF 才允许结束对话） | ✅ M0 收尾生成 / 逐棒续写 |
 | [HANDOFF-M2.md](HANDOFF-M2.md) | M1 收尾 → M2 解析层交接（R1–R6 结论 / 11 case fixtures / 守门与变异实录） | ✅ M1 收尾生成 2026-10-15 |
+| [HANDOFF-M3.md](HANDOFF-M3.md) | M2 收尾 → M3 引擎交接（解析口径落地 / scan 摘要 / 退出码 4 退役实录） | ✅ M2 收尾生成 2026-10-15 |
 
 ## 决策记录
 
@@ -49,7 +50,7 @@
 
 | 承诺项 | 素材来源 | 交付物内可达性 | 核验方式 | 状态 |
 |---|---|---|---|---|
-| 会话日志解析器（Claude Code + Codex 双源 → 统一 IR） | `~/.claude/projects/*/*.jsonl` ✅ 本机 125 个 + `~/.codex/sessions/**/rollout-*.jsonl` ✅ 本机 220 个 | 解析器随包；零第三方重依赖 | 同一日志 → 同一 IR；双源样例逐字段核对 | ⬜ 待 M1/M2 |
+| 会话日志解析器（Claude Code + Codex 双源 → 统一 IR） | `~/.claude/projects/*/*.jsonl` ✅ 本机 125 个 + `~/.codex/sessions/**/rollout-*.jsonl` ✅ 本机 220 个 | 解析器随包；零第三方重依赖 | 同一日志 → 同一 IR；双源样例逐字段核对 | ✅ M2（11 case truth 回归 + 双跑 IR 一致；见 HANDOFF-M3.md） |
 | **返工检测引擎**（版本快照链 v1→v2→v3 反复覆盖 / 同文件多次 Edit） | `~/.claude/file-history/<session>/<hash>@vN` ✅ 本机 68 个快照 / 9 会话（`trackedFileBackups` 结构实测） | 返工检测随包（读本地快照，不上传） | 合成会话植入真值对账；真实样本人工抽验 | ⬜ 待 M1/M3 |
 | Read:Edit 比与"新建 vs 复用"指标 | 会话 IR 的 read/edit/write 事件 + 符号提取 | 指标随包；阈值口径一处定义 | 合成基准逐例核验；阈值改一处全链路同变 | ⬜ 待 M3 |
 | 报告输出（本地 HTML / Markdown） | 引擎结果 + 证据锚点（会话 id / 行号 / 版本文件名） | 报告为纯本地文件，零上传 | 报告只渲染结果（零判定逻辑）；锚点可回溯 | ⬜ 待 M4 |
@@ -65,7 +66,7 @@
 |---|---|---|
 | M0 | 计划先行 + 可运行骨架（plan/ 00–07、工程骨架、核心层、测试、CI） | ✅ 完成 2026-10-15（详见 [06](06-里程碑.md)） |
 | M1 | **数据先行**：会话格式核对（Claude jsonl / Codex rollout / file-history 字段逐样本核对）+ 合成会话日志真值生成（植入真值 + 覆盖度门槛口径），**未核对字段不得落库/生效** | ✅ 完成 2026-10-15（R1–R6 核对闭环 + 冻结 fixtures + 守门 8 项；详见 [06](06-里程碑.md) 与 [HANDOFF-M2.md](HANDOFF-M2.md)） |
-| M2 | 会话日志解析：双源 → 统一中间表示（Unified Session IR），路径自适应发现，缺失字段标 `unknown` | ⬜ 待开工 |
+| M2 | 会话日志解析：双源 → 统一中间表示（Unified Session IR），路径自适应发现，缺失字段标 `unknown` | ✅ 完成 2026-10-15（双源解析器 + file-history 实读 + scan 接入；退出码 4 退役；详见 [06](06-里程碑.md) 与 [HANDOFF-M3.md](HANDOFF-M3.md)） |
 | M3 | 指标算法：返工检测（版本链 + Edit 次数）+ Read:Edit 比 + "新建 vs 复用"粗匹配（阈值一处定义） | ⬜ 待开工 |
 | M4 | 基准：合成会话基准跑通，检测率 / 误报率口径进 README，一条命令复现 | ⬜ 待开工 |
 | M5 | 交付：CLI + 报告输出（Markdown / HTML）+ 技术报告 + README 演示 | ⬜ 待开工 |

@@ -1,8 +1,5 @@
-"""解析层：jsonl 容错读取 + 骨架护栏。"""
+"""解析层：jsonl 容错读取 + 双源解析器（M2 起启用；护栏已按 K2 退役）。"""
 
-import pytest
-
-from agent_rework_lens.errors import StageNotReady
 from agent_rework_lens.parsers import parse_claude_session, parse_codex_session
 from agent_rework_lens.parsers.common import iter_jsonl_lines
 
@@ -30,12 +27,11 @@ def test_iter_jsonl_lines_empty_file(tmp_path):
     assert list(iter_jsonl_lines(path)) == []
 
 
-def test_parsers_stage_guard_until_m2(tmp_path):
+def test_parsers_enabled_since_m2(tmp_path):
+    """M2 起解析器启用；坏行只进 ParseNote 不抛异常（K2：护栏已退役）。"""
     path = tmp_path / "s.jsonl"
     path.write_text("{}\n", encoding="utf-8")
-    with pytest.raises(StageNotReady) as claude_exc:
-        parse_claude_session(str(path))
-    assert "M2" in str(claude_exc.value)
-    with pytest.raises(StageNotReady) as codex_exc:
-        parse_codex_session(str(path))
-    assert "M2" in str(codex_exc.value)
+    ir = parse_claude_session(str(path))
+    assert ir.meta.source == "claude_code"
+    ir = parse_codex_session(str(path))
+    assert ir.meta.source == "codex"

@@ -115,12 +115,14 @@ def test_scan_no_sources_exit_3(tmp_path, capsys):
     assert "未发现可分析日志源" in captured.err
 
 
-def test_scan_stage_not_ready_exit_4(tmp_path, capsys):
+def test_scan_parses_and_prints_summary_exit_0(tmp_path, capsys):
+    """M2 起 scan 完成"发现→解析→IR"并以退出码 0 输出摘要（K2：4 已退役）。"""
     claude = _claude_tree(tmp_path)
     rc = main(["scan", "--claude-home", str(claude), "--codex-home", str(tmp_path / "nonexistent")])
     captured = capsys.readouterr()
-    assert rc == 4
-    assert "未就绪" in captured.err
+    assert rc == 0
+    assert "scan 完成" in captured.out
+    assert "1 个会话" in captured.out
 
 
 def test_selftest_ok(capsys):
