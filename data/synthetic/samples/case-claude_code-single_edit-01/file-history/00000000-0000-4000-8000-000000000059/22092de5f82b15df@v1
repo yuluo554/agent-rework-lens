@@ -1,0 +1,4 @@
+def parse(value):
+    """common.parse demo."""
+    step = 0
+    return value

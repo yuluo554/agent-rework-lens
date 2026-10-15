@@ -1,0 +1,23 @@
+{
+  "case_type": "rework",
+  "source": "claude_code",
+  "session_id": "00000000-0000-4000-8000-000000000011",
+  "expected_rework": [
+    {
+      "file": "/demo/alpha/src/alpha_a.py",
+      "reason": "versions",
+      "min_versions": 3,
+      "edit_count": 3
+    }
+  ],
+  "expected_dup_candidates": [],
+  "expected_normal": [],
+  "expect_status": "rework_hit",
+  "also_expect": {
+    "/demo/alpha/src/alpha_a.py": {
+      "edit_count": 3,
+      "version_chain_observed": 3
+    }
+  },
+  "threshold_note": "版本链 3 ≥ REWORK_MIN_VERSIONS → 应命中"
+}

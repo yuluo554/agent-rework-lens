@@ -1,0 +1,16 @@
+{
+  "case_type": "single_edit",
+  "source": "claude_code",
+  "session_id": "00000000-0000-4000-8000-000000000059",
+  "expected_rework": [],
+  "expected_dup_candidates": [],
+  "expected_normal": [
+    {
+      "file": "/demo/alpha/src/common.py",
+      "edit_count": 1
+    }
+  ],
+  "expect_status": "not_rework",
+  "also_expect": {},
+  "threshold_note": "单次编辑、版本链 = 1（@v1 = 首次编辑前备份）→ 两条判据均不命中"
+}

@@ -1,0 +1,16 @@
+{
+  "case_type": "normal",
+  "source": "codex",
+  "session_id": "00000000-0000-4000-8000-000000000077",
+  "expected_rework": [],
+  "expected_dup_candidates": [],
+  "expected_normal": [
+    {
+      "file": "/demo/alpha/src/beta_b.py",
+      "edit_count": 1
+    }
+  ],
+  "expect_status": "not_rework",
+  "also_expect": {},
+  "threshold_note": "单次 Add File、无反复覆盖 → 不命中"
+}

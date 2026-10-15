@@ -64,7 +64,7 @@
 | 文件数 | **68** 个版本快照文件，分属 **9** 个会话目录（单会话最多 38 个快照） |
 | 版本号分布 | `@v1` **21** 个 / `@v2` **46** 个 / `@v3` **1** 个 |
 | 可做的判定 | **同一文件出现 `@v1→@v2→@v3` 即"被反复覆盖"= 返工的结构性证据**；配合 §2.1 的 `trackedFileBackups` 可得"哪个真实文件被覆盖了几次" |
-| ⬜ 待核对 | `version` 字段语义（v1 是否 = 原始版本或首次备份）→ **M1 用真实样本逐条核对后写进口径**；快照文件内容格式（是否为文件全文副本）→ M1 核对 |
+| ⬜→✅ 待核对（M1 已闭环） | `version` 字段语义与快照内容格式 → **已核对，见 §2.6 核对记录 R1/R2** |
 
 ### 2.3 Codex 会话日志（✅ 本机实测）
 
@@ -77,7 +77,7 @@
 | `payload.type` 实测分布 | `item_completed` 81 / `reasoning` 61 / **`function_call` 49** / `function_call_output` 49 / `message` 48 / **`token_count` 46** / `web_search_call` 31 / `custom_tool_call` 7 / `task_started` 4 / `task_complete` 4 … |
 | 工具调用名（实测） | `exec_command` 35 / `update_plan` 10 / **`apply_patch` 7** / `update_goal` 3 / `create_goal` 1（单样本实测；全量分布待 M1 统计） |
 | token 计量字段 | `token_count` 载荷 `info.total_token_usage` 实测键：`input_tokens` / `cached_input_tokens` / `cache_write_input_tokens` / `output_tokens` / `reasoning_output_tokens` / `total_tokens`；另有 `last_token_usage` 与 `model_context_window` |
-| ⬜ 待核对 | `apply_patch` 载荷（`arguments` JSON 字符串）内的**目标文件路径字段**格式 → **M1 数据先行逐样本核对**；`item_completed.item.type` 枚举（实测见 `UserMessage` 等）→ M1 核对 |
+| ⬜→✅ 待核对（M1 已闭环） | `apply_patch` 载荷内目标文件路径格式 → **已核对，见 §2.6 R3**；`item_completed.item.type` 枚举 → M1 核对（结论：非计算必需字段，**保持待核对/不启用**，M2 解析不读它） |
 
 ### 2.4 代码侧回滚证据（✅ 可用）
 
@@ -94,7 +94,24 @@
 
 ---
 
-## 三、合成数据纪律
+### 2.6 M1 字段核对记录（2026-10-15 实测；只落统计数字 + 字段名 + 结论，零原始文本/真实路径/真实 session id）
+
+**核对方法**：临时脚本离线聚合统计（脚本不落仓）；所有计数为本机实测快照。
+
+| # | 待核对项 | 状态 | 样本出处（脱敏描述） | 结论 |
+|---|---|---|---|---|
+| R1 | file-history `version` 语义（v1 = 原始 or 首次备份） | ✅ **已核对** | 68 个快照文件 × 49 个（会话,文件哈希）链；与会话 transcript 内 Edit `old_string`/`new_string` 交叉比对 | **`@vN` = 第 N 次编辑前的内容备份**（v1 = agent 首次修改前的原始内容）。证据：v1 强烈富集 Edit `old_string` 命中（43 处 pre-image vs 37 处 post-image）；链级抽样中"低版本=pre-image、高版本=post-image"成对出现（2 例明确、其余链长不足）。**口径**：版本链长度 = `@vN` 最大 N；判"返工"以实读链为准（K4 不反推） |
+| R2 | 快照文件内容格式 | ✅ **已核对** | 68 个文件字节头 + 解码抽样 | 内容 = **编辑前文件全文副本**：62/68 为 UTF-8 文本、6/68 非 UTF-8（二进制副本照存）；大小 305 B–约 100 KB；同链相邻版本哈希两两不同（非占位符）。**口径**：按"全文副本"读，不可解码的按二进制计数、不解析内容 |
+| R3 | Codex `apply_patch` 载荷内目标文件路径字段 | ✅ **已核对** | 220 文件全量聚合：104 次 `apply_patch`，`payload` 键集固定，`input` 100% 为 str | 目标文件路径**不在 JSON arguments 里，而在 `payload.input`（V4A 补丁文本）的指令行内**：`*** Update File: <path>` / `*** Add File: <path>`（实测 Update 103 / Add 88 / Delete 0；路径绝对形态 142 / 相对形态 49）。**口径**：M2 解析器按指令行提取目标路径；`payload.type` ∈ {function_call, custom_tool_call} 两种容器都出现 |
+| R4 | Claude `MultiEdit` 存在性与字段形态 | ✅ **已核对** | 125 文件全量工具名聚合 | **本机 125 文件 0 次 `MultiEdit`**（不存在于本机快照）。写工具实测两种且字段形态固定：`Edit{file_path, old_string, new_string, replace_all}` 252 次、`Write{file_path, content}` 116 次。**口径**：M2 按 Edit/Write 解析；MultiEdit 字段留 known-name 占位（KIND_MULTIEDIT 已在 IR 注册），出现即按"多段 Edit 序列"语义降级处理并计 ParseNote |
+| R5 | Codex 全量工具调用分布 | ✅ **已核对** | 220 文件全量聚合（function_call + custom_tool_call） | `exec` 10093 / `wait_agent` 1258 / `wait` 916 / `js` 576 / `send_message` 309 / `shell_command` 271 / **`apply_patch` 104** / `exec_command` 93 / `list_agents` 86 / `view_image` 59 / `followup_task` 45 / `update_plan` 44 / `run` 33（前 13 项，其余零散）。**唯一写文件工具 = apply_patch**；`payload.type` 全量分布：token_count 37500 / item_completed 24583 / reasoning 15645 / custom_tool_call 10197 / message 6020 / function_call 3908 / … |
+| R6 | `file-history-snapshot` 内联字段与 file-history 目录的关联方式 | ✅ **已核对** | 123 条快照行 × 68 个目录文件交叉比对 | 关联键 = **`<transcript 文件名 stem（= session uuid）>` + `backupFileName`**：`trackedFileBackups` 为 **dict**（键 = 被跟踪真实文件路径字符串），entry 固定 `{backupFileName: str, version: int, backupTime: ISO, realParentDir: str}` 4 字段；75/75 个非空 `backupFileName` 精确命中 `file-history/<session-uuid>/<backupFileName>`；3 个 entry 的 `backupFileName` 为 null（**稀疏性**，解析须容空）。快照行 `snapshot` 内层固定 `{messageId, timestamp, trackedFileBackups}`；**快照记录的 version 可高于目录现存文件**（实测记录到 v5、目录仅存到 v3）→ 目录是**稀疏证据**，只能实读不可反推（与 K4 互证） |
+
+**M1 核对总结**：data/README §五 5 项全部闭环（R1–R6）；K7 解锁——M2 可按上述口径实现双源解析器。
+
+---
+
+## 三、合成数据纪律（M1 起含生成器与冻结登记）
 
 **总则**：基准与演示一律使用**合成会话日志**；**零真实项目、零真实路径、零真实用户名**。
 
@@ -108,6 +125,23 @@
 4. **禁止真实日志入库**：本机真实会话日志**含真实代码与 prompt**——**一律不入仓**（`.gitignore` 兜底 + 提交前审计）；仅在**台账中记录聚合计数快照**（如工具计数），不落原始文本、不落真实路径、不落真实 session id。
 5. **禁止"换标签充数"**：合成样例的不同"类型"必须由**生成逻辑本身**区分（真值随生成逻辑产出），不得把同一份样例换标签冒充不同异常类型。
 
+### 3.1 生成器说明（M1 落地）
+
+- **脚本**：`tools/gen_synthetic.py`（自研 splitmix64 RNG、seed 固定于 manifest；**禁 stdlib random、禁系统时钟**；所有时间戳为常量）；
+- **命令**：`py -X utf8 tools/gen_synthetic.py`（生成/重生成整目录）；`py -X utf8 tools/gen_synthetic.py --check`（重生成与冻结件**逐字节比对**，差异 → exit 1）；
+- **样本矩阵**：7 类（rework / duplicate / normal / missing_chain / single_edit / threshold_exact / near_miss），阈值**读 `agent_rework_lens.config`，不抄数值**（K1）；真值 truth.json 生成时同步标注（plan/05 §4.3 字段集）；
+- **形态忠实度**：Claude/Codex 行形态按 §2.6 R3–R6 核对结论构造（字段名、嵌套结构、V4A 指令行、快照 4 字段 entry）；
+- **确定性验证**：双跑逐字节一致（实测通过）；`--check` 守门入 pytest（`tests/test_synthetic_data.py`）。
+
+### 3.2 冻结登记（M1）
+
+- **冻结范围**：`data/synthetic/**`（manifest.json + samples/ 全部文件）；**禁手改**，改动走生成器整目录重生成；
+- **sha256 三联动**：manifest 内 `sha256` 映射 ↔ 实际文件 ↔ 本台账登记（**47 个冻结文件**，样例 11 case，基准日 2026-10-15；逐文件哈希以 manifest 为准，本台账登记总数——台账不抄第二份哈希清单，防漂移）；
+- **覆盖度门槛**（数值单点在 manifest `coverage.min_count_by_type`，此处不复制数值）：7 类各有最低例数；实际计数见 manifest `actual_count_by_type`；
+- **EOL 冻结**：`.gitattributes` `data/synthetic/** -text` 已生效（克隆/检出不改字节，sha256 稳定）；
+- **守门测试**：`tests/test_synthetic_data.py` 8 项（sha256 三处一致 / `--check` 子进程位级 / 覆盖度达标 / truth schema / 白名单形态 / 零真实值扫描 fixtures + 全仓 / .gitattributes 规则）；
+- **变异验证实录**（M1，方法论见 HANDOFF-M1 §四）：① 改生成器输出体例（文档字符串文案）→ `--check` 变红（manifest + 逐文件 sha256 全量报告）→ 恢复绿；② 手改冻结件字节（加 LF）→ sha256 守门测试变红 → 恢复绿。两次变异都改**被测行为**，非等价改写。
+
 ---
 
 ## 四、数值口径纪律
@@ -120,12 +154,15 @@
 
 ---
 
-## 五、待核对项（⬜ 闭环路径）
+## 五、待核对项（⬜ 闭环路径）—— M1 全部闭环（2026-10-15）
 
-| # | 待核对项 | 闭环路径 |
+| # | 待核对项 | 闭环状态（M1） |
 |---|---|---|
-| 1 | HN item 44548554 内"refactor duplicate code"评论的**精确原话与楼层锚点** | 有条件时抓取该条评论树，核到逐字原话后升级为 ✅；未核到前题面保持"该讨论中"的弱表述 |
-| 2 | Codex `apply_patch` 载荷内**目标文件路径字段**格式 | **M1 数据先行**逐样本核对，核对记录回填本台账 §2.3 |
-| 3 | `file-history` 的 `version` 语义（v1 = 原始 or 首次备份）与快照文件内容格式 | **M1** 用真实样本核对后写进口径；未核对前不得据此下"返工"结论 |
-| 4 | Claude Code `MultiEdit` / 其他写工具在日志中的字段形态 | **M1** 核对（本机 125 文件快照内未见 `MultiEdit` 计数 → 需确认是否存在、字段是否同形） |
-| 5 | Codex 全量工具调用分布（当前仅单样本实测） | **M1** 全量 220 文件聚合统计 |
+| 1 | HN item 44548554 内"refactor duplicate code"评论的**精确原话与楼层锚点** | **⬜ 保持待核对**（条件不足：本对话未抓取评论树；已查渠道 = Firebase API 条目级实测）。未核到前题面保持"该讨论中"的弱表述——**不影响计算路径**（纯题面论据） |
+| 2 | Codex `apply_patch` 载荷内**目标文件路径字段**格式 | ✅ 已核对 → §2.6 R3 |
+| 3 | `file-history` 的 `version` 语义与快照文件内容格式 | ✅ 已核对 → §2.6 R1/R2 |
+| 4 | Claude Code `MultiEdit` / 其他写工具字段形态 | ✅ 已核对（本机不存在 MultiEdit）→ §2.6 R4 |
+| 5 | Codex 全量工具调用分布 | ✅ 已核对 → §2.6 R5 |
+| 6 | Claude `file-history-snapshot` 与目录的关联方式 | ✅ 已核对 → §2.6 R6 |
+
+**K7 状态**：将被解析的字段已全部核对（或显式"不启用"：`item_completed.item.type` 枚举、MultiEdit 字段）→ M2 解析器可按 §2.6 口径实现。

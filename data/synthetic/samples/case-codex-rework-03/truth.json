@@ -1,0 +1,22 @@
+{
+  "case_type": "rework",
+  "source": "codex",
+  "session_id": "00000000-0000-4000-8000-000000000063",
+  "expected_rework": [
+    {
+      "file": "/demo/alpha/src/alpha_a.py",
+      "reason": "edits",
+      "min_versions": 4,
+      "edit_count": 4
+    }
+  ],
+  "expected_dup_candidates": [],
+  "expected_normal": [],
+  "expect_status": "rework_hit",
+  "also_expect": {
+    "/demo/alpha/src/alpha_a.py": {
+      "edit_count": 4
+    }
+  },
+  "threshold_note": "apply_patch 4 ≥ REWORK_MIN_EDITS → 应命中"
+}

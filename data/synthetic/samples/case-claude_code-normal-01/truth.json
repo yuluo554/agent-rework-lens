@@ -1,0 +1,16 @@
+{
+  "case_type": "normal",
+  "source": "claude_code",
+  "session_id": "00000000-0000-4000-8000-000000000026",
+  "expected_rework": [],
+  "expected_dup_candidates": [],
+  "expected_normal": [
+    {
+      "file": "/demo/alpha/src/beta_a.py",
+      "edit_count": 1
+    }
+  ],
+  "expect_status": "not_rework",
+  "also_expect": {},
+  "threshold_note": "单次 Write 一次成型、无版本链 → 两条判据均不命中"
+}

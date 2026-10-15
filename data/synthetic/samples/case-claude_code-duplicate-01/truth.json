@@ -1,0 +1,19 @@
+{
+  "case_type": "duplicate",
+  "source": "claude_code",
+  "session_id": "00000000-0000-4000-8000-000000000034",
+  "expected_rework": [],
+  "expected_dup_candidates": [
+    {
+      "new_symbol": "make_compute_wrapper",
+      "existing_symbol": "make_compute_helper",
+      "reason": "normalized_exact"
+    }
+  ],
+  "expected_normal": [],
+  "expect_status": "not_rework",
+  "also_expect": {
+    "dup_candidate_expected": true
+  },
+  "threshold_note": "新写符号与项目已有符号归一化后精确相等 → 候选（披露制：非克隆判决）"
+}

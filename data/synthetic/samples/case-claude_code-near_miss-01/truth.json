@@ -1,0 +1,18 @@
+{
+  "case_type": "near_miss",
+  "source": "claude_code",
+  "session_id": "00000000-0000-4000-8000-000000000041",
+  "expected_rework": [],
+  "expected_dup_candidates": [],
+  "expected_normal": [
+    {
+      "file": "/demo/alpha/src/beta_b.py",
+      "edit_count": 1
+    }
+  ],
+  "expect_status": "not_rework",
+  "also_expect": {
+    "dup_candidate_expected": false
+  },
+  "threshold_note": "符号名近但不重：归一化相似度 < DUP_MATCH_THRESHOLD → 不应命中（反向样例）"
+}

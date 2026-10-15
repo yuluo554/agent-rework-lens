@@ -1,0 +1,4 @@
+def compute(value):
+    """alpha_a.compute demo."""
+    step = 2
+    return value

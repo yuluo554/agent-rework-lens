@@ -1,0 +1,11 @@
+{
+  "case_type": "missing_chain",
+  "source": "claude_code",
+  "session_id": "00000000-0000-4000-8000-000000000048",
+  "expected_rework": [],
+  "expected_dup_candidates": [],
+  "expected_normal": [],
+  "expect_status": "insufficient_data",
+  "also_expect": {},
+  "threshold_note": "有写行为但无版本快照链 → insufficient_data"
+}

@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "generated_by": "tools/gen_synthetic.py",
+  "seed": 20261015,
+  "determinism": {
+    "rng": "splitmix64",
+    "stdlib_random": "forbidden",
+    "clock_reads": 0,
+    "line_endings": "LF",
+    "encoding": "utf-8-no-bom"
+  },
+  "thresholds_source": "agent_rework_lens.config（生成器读 config，不抄数值）",
+  "coverage": {
+    "min_count_by_type": {
+      "rework": 2,
+      "duplicate": 2,
+      "normal": 2,
+      "missing_chain": 1,
+      "single_edit": 1,
+      "threshold_exact": 1,
+      "near_miss": 1
+    },
+    "actual_count_by_type": {
+      "rework": 3,
+      "duplicate": 2,
+      "normal": 2,
+      "missing_chain": 1,
+      "single_edit": 1,
+      "threshold_exact": 1,
+      "near_miss": 1
+    }
+  },
+  "whitelist": {
+    "fake_projects": [
+      "demo-project-alpha",
+      "demo-project-beta"
+    ],
+    "fake_users": [
+      "demo-user"
+    ],
+    "fake_hosts": [
+      "demo-host"
+    ],
+    "fake_session_id_pattern": "00000000-0000-4000-8000-0000000000NN",
+    "fake_path_roots": [
+      "/demo/alpha/src",
+      "/demo/beta/src"
+    ]
+  },
+  "sha256": {
+    "samples/case-claude_code-duplicate-01/project/beta_b.py": "a6ee5da4f1138b29e5d8c939246ab9a26ad6b64ad46edc4642f8050b08ef3d68",
+    "samples/case-claude_code-duplicate-01/project/common.py": "a34f98024c2028db79cc71a5ab0e9342f8a62299bb406270fceed1ed939ccacc",
+    "samples/case-claude_code-duplicate-01/session.jsonl": "f65cf84660f75c65c5f4b8ac6ededc196bea9da14aff255e54baa1ef08b57a3f",
+    "samples/case-claude_code-duplicate-01/truth.json": "13d331157423a184b20606a65c07bce638e011e93e7b9a3a1a614b4da34d17fa",
+    "samples/case-claude_code-duplicate-02/project/beta_b.py": "a6ee5da4f1138b29e5d8c939246ab9a26ad6b64ad46edc4642f8050b08ef3d68",
+    "samples/case-claude_code-duplicate-02/project/common.py": "a34f98024c2028db79cc71a5ab0e9342f8a62299bb406270fceed1ed939ccacc",
+    "samples/case-claude_code-duplicate-02/session.jsonl": "9f4a0951e7e32366bf0016afd2d01e5e8d9cbbf7e551e49554dba43a1058f08f",
+    "samples/case-claude_code-duplicate-02/truth.json": "3014f4cf75929c75b017cbc0c7ae0ac7f2899e070689c03828f48f64723c0518",
+    "samples/case-claude_code-missing_chain-01/project/alpha_b.py": "5d3d82e9027fc2e03d36dbe9c7f347cc433193d87628e797f635f3611693ed4d",
+    "samples/case-claude_code-missing_chain-01/session.jsonl": "3009285319ee689e7e401aefe9e718e0275fe96687f64a054232e5b759e2a079",
+    "samples/case-claude_code-missing_chain-01/truth.json": "96f33ee272fc397b22e91e46d5c07ec1a687d59603ee0e0be9fd84e94d74744d",
+    "samples/case-claude_code-near_miss-01/project/beta_b.py": "8bc8531207187d5a1abcaa90e3ad4975fb4565d42dd578c188fa1d335abba036",
+    "samples/case-claude_code-near_miss-01/project/common.py": "a34f98024c2028db79cc71a5ab0e9342f8a62299bb406270fceed1ed939ccacc",
+    "samples/case-claude_code-near_miss-01/session.jsonl": "ddb0eec4e31fb4616a78dddce5756b0befc824d431540fc345e6dc56c81c33e7",
+    "samples/case-claude_code-near_miss-01/truth.json": "926821a29d1cfc98a5575af3ad7dee09e06abd496123e114a267c4bbea04d7c3",
+    "samples/case-claude_code-normal-01/project/beta_a.py": "e50a6ddf2349a1a7574ffba569ade8e07d7c2e31b127f5f0ba1821fc3012d38c",
+    "samples/case-claude_code-normal-01/session.jsonl": "f4cfe3d12063e80c6f4dc98141c98545fa78fd36fc0f7f569a5127a7f7a90d4a",
+    "samples/case-claude_code-normal-01/truth.json": "d2f85ae18bbb6ce096c2c343dd505bd877c85bd21f75e6001f281def4d796a04",
+    "samples/case-claude_code-rework-01/file-history/00000000-0000-4000-8000-000000000011/89b13e3cd80c18a9@v1": "052306903930af9a773df78c4848a294335c0084c4a3973cbddff91f7c4521d4",
+    "samples/case-claude_code-rework-01/file-history/00000000-0000-4000-8000-000000000011/89b13e3cd80c18a9@v2": "62dea52e88b40441550a17a2e6a34ebdc5e552d66957739d23c46cbddc20270f",
+    "samples/case-claude_code-rework-01/file-history/00000000-0000-4000-8000-000000000011/89b13e3cd80c18a9@v3": "241f05f0bae7362c225caf5fd00f6b53d951173f218585e2be8c0e2bc1bf4959",
+    "samples/case-claude_code-rework-01/project/alpha_a.py": "fc21d92f719803ae07a3e8bfda1b6e12d44d5b87f6c2364ceee29b61feff1bf7",
+    "samples/case-claude_code-rework-01/session.jsonl": "2f1f161b5997a8c42e0f2aa8bf390dd419fed3c1414b5d447a69cb8cc8f31d71",
+    "samples/case-claude_code-rework-01/truth.json": "9da8d9ef72c743e93a680b269da52a2c9788edadede5a8610266b3d0d29462b0",
+    "samples/case-claude_code-rework-02/file-history/00000000-0000-4000-8000-000000000012/e28d7d65117c141b@v1": "052306903930af9a773df78c4848a294335c0084c4a3973cbddff91f7c4521d4",
+    "samples/case-claude_code-rework-02/file-history/00000000-0000-4000-8000-000000000012/e28d7d65117c141b@v2": "62dea52e88b40441550a17a2e6a34ebdc5e552d66957739d23c46cbddc20270f",
+    "samples/case-claude_code-rework-02/file-history/00000000-0000-4000-8000-000000000012/e28d7d65117c141b@v3": "241f05f0bae7362c225caf5fd00f6b53d951173f218585e2be8c0e2bc1bf4959",
+    "samples/case-claude_code-rework-02/file-history/00000000-0000-4000-8000-000000000012/e28d7d65117c141b@v4": "fc21d92f719803ae07a3e8bfda1b6e12d44d5b87f6c2364ceee29b61feff1bf7",
+    "samples/case-claude_code-rework-02/project/alpha_a.py": "667d33cad88cc1cf76cb8e22daadcd7c5c9375b919f0e132e4b79684112ddf71",
+    "samples/case-claude_code-rework-02/session.jsonl": "86e3577fefd47f0d4f9fb211a025111556dc6d1bad1242b10b5bac1f1e0795c5",
+    "samples/case-claude_code-rework-02/truth.json": "22b13edfe4d8bc65e8f7922b2c5fac89c3728e167a92e41fbc8ac5dcb5f9e1ce",
+    "samples/case-claude_code-single_edit-01/file-history/00000000-0000-4000-8000-000000000059/22092de5f82b15df@v1": "1a69ce7f5829ecd21fd22258300ef0b28345064017b7d37bf140377e715bedfb",
+    "samples/case-claude_code-single_edit-01/project/common.py": "a03442067abc0088e39e602552a8b64d76daba8b8f3b12a705e344641d6c043a",
+    "samples/case-claude_code-single_edit-01/session.jsonl": "e7e2a901a1f36290c38d85f1abfa346221b228267995607967fef56712c5d3a4",
+    "samples/case-claude_code-single_edit-01/truth.json": "8545e20943c27a9197f091df0965dd8697981289bef6007bd8c6017be42a9669",
+    "samples/case-claude_code-threshold_exact-01/file-history/00000000-0000-4000-8000-000000000020/749e99359bf77364@v1": "052306903930af9a773df78c4848a294335c0084c4a3973cbddff91f7c4521d4",
+    "samples/case-claude_code-threshold_exact-01/file-history/00000000-0000-4000-8000-000000000020/749e99359bf77364@v2": "62dea52e88b40441550a17a2e6a34ebdc5e552d66957739d23c46cbddc20270f",
+    "samples/case-claude_code-threshold_exact-01/file-history/00000000-0000-4000-8000-000000000020/749e99359bf77364@v3": "241f05f0bae7362c225caf5fd00f6b53d951173f218585e2be8c0e2bc1bf4959",
+    "samples/case-claude_code-threshold_exact-01/project/alpha_a.py": "fc21d92f719803ae07a3e8bfda1b6e12d44d5b87f6c2364ceee29b61feff1bf7",
+    "samples/case-claude_code-threshold_exact-01/session.jsonl": "55b14edf682bf4cb3e012e881cf8a06aaa87f49a28f688c48851b7155f72b5e0",
+    "samples/case-claude_code-threshold_exact-01/truth.json": "15077951f9f1771fcc880e432d3709afcd604698b75599698413d89f29d18980",
+    "samples/case-codex-normal-02/project/beta_b.py": "eaf2bc57c98ccb41ff7b0a1b39c2ed2d20cb7667becf8c29976dd665f5c2a14a",
+    "samples/case-codex-normal-02/session.jsonl": "99ad4005aa37128aaed03afdadb3f4308c36deb696c1aae219d440e7ce908474",
+    "samples/case-codex-normal-02/truth.json": "6578ad71aa786b04816fc51893767ecfbcc6f9e0815fa51098fc5e9165616ef9",
+    "samples/case-codex-rework-03/project/alpha_a.py": "667d33cad88cc1cf76cb8e22daadcd7c5c9375b919f0e132e4b79684112ddf71",
+    "samples/case-codex-rework-03/session.jsonl": "5bff619a727b9e5280de360aa861d9e0fab943bd7cd0bdce7a582ddfcd690825",
+    "samples/case-codex-rework-03/truth.json": "05e6aeab0bae5ead7250ffa152ee72bc3e7d94dba307046a77edb7f4f53e9a3b"
+  }
+}
