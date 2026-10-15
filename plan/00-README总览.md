@@ -24,6 +24,8 @@
 | [HANDOFF-M4.md](HANDOFF-M4.md) | M3 收尾 → M4 基准交接（引擎判定落地 / 阈值校准定稿 / 链归属口径） | ✅ M3 收尾生成 2026-10-15 |
 | [HANDOFF-M5.md](HANDOFF-M5.md) | M4 收尾 → M5 交付交接（bench 全对账 / 探活实录 / README 指标口径成稿） | ✅ M4 收尾生成 2026-10-15 |
 | [HANDOFF-M6.md](HANDOFF-M6.md) | M5 收尾 → M6 发布交接（报告成稿 / 技术报告 / 干净环境验证 / **发布前置清单**） | ✅ M5 收尾生成 2026-10-15 |
+| [HANDOFF-M7.md](HANDOFF-M7.md) | M6 发布 → M7 收尾固化交接（发布证据 / 缓议项清单 / D-M6 决策） | ✅ M6 收尾生成 2026-10-15 |
+| [WRAPUP-M7.md](WRAPUP-M7.md) | **系列完结档**：GitHub 元信息终检 / 缓议项 10 条清零（D-M7-1..5）/ 品牌隔离终检 / 计数一致复核 | ✅ M7 收尾生成 2026-10-15 |
 
 ## 决策记录
 
@@ -59,7 +61,7 @@
 | 报告输出（本地 HTML / Markdown） | 引擎结果 + 证据锚点（会话 id / 行号 / 版本文件名） | 报告为纯本地文件，零上传 | 报告只渲染结果（零判定逻辑）；锚点可回溯 | ✅ M5（`--report-md/--report-html` + 锚点列 + 披露制 + 三方对账锁测试；见 HANDOFF-M6.md） |
 | **合成会话基准 + 植入真值** | 程序化生成的假项目名 / 假路径会话日志 | 基准零外部依赖、零 API，一条命令复现 | 真值由生成器同步标注；指标口径进 README | ✅ M4（`arl bench` 11 case truth 全对账 + 覆盖率门槛 manifest 强制 + 探活变异；见 HANDOFF-M5.md） |
 | 官方文档锚点（transcript 路径 / 字段） | Claude Code hooks 文档 ✅ 直连核对 | 文档引用 | 字段名 `session_id` / `transcript_path` / `cwd` 已在文档 "Common input fields" 核到 | ✅ **已核对**（2026-10-15） |
-| 发布闭环（tag + Release + 留档） | GitHub 公开仓库 | Release 附源码 zip + 留档 sha256 | 本地留有产物副本可 sha256 复验 | ⬜ 待 M6 |
+| 发布闭环（tag + Release + 留档） | GitHub 公开仓库 | Release 附源码 zip + 留档 sha256 | 本地留有产物副本可 sha256 复验 | ✅ M6（tag `v0.1.0-m6` + Release draft=false + 附件 sha256 复验；见 RELEASE-M6.md） |
 | 完整 AST 克隆检测 | 扩展项（工程量） | 不入首期 | — | ⬜ 扩展 |
 | 跨会话趋势 / CI 集成 | 扩展项 | 不入首期 | — | ⬜ 扩展 |
 
@@ -73,8 +75,8 @@
 | M3 | 指标算法：返工检测（版本链 + Edit 次数）+ Read:Edit 比 + "新建 vs 复用"粗匹配（阈值一处定义） | ✅ 完成 2026-10-15（三态判定 + 链归属实读 + 阈值校准定稿 D-M3-1；详见 [06](06-里程碑.md) 与 [HANDOFF-M4.md](HANDOFF-M4.md)） |
 | M4 | 基准：合成会话基准跑通，检测率 / 误报率口径进 README，一条命令复现 | ✅ 完成 2026-10-15（`arl bench` 11 case truth 全对账 + 覆盖率门槛 manifest 强制 + 探活变异；详见 [06](06-里程碑.md) 与 [HANDOFF-M5.md](HANDOFF-M5.md)） |
 | M5 | 交付：CLI + 报告输出（Markdown / HTML）+ 技术报告 + README 演示 | ✅ 完成 2026-10-15（报告成稿 + docs/TECHNICAL-REPORT.md + 干净环境双 venv 逐条跑；详见 [06](06-里程碑.md) 与 [HANDOFF-M6.md](HANDOFF-M6.md)） |
-| M6 | 发布：**git tag + GitHub Release 附产物 + 发布留档三件套**，发布 GitHub **公开**仓库 | ⬜ 待开工 |
-| M7 | 收尾固化（发布后）：topics/元信息核验、材料固化、缓议项清零、品牌隔离复查 | ⬜ 待开工 |
+| M6 | 发布：**git tag + GitHub Release 附产物 + 发布留档三件套**，发布 GitHub **公开**仓库 | ✅ 完成 2026-10-15（脱敏全 0 + CI 三腿全绿 + tag/Release sha256 留档；详见 [06](06-里程碑.md) 与 [RELEASE-M6.md](RELEASE-M6.md)） |
+| M7 | 收尾固化（发布后）：topics/元信息核验、材料固化、缓议项清零、品牌隔离复查 | ✅ 完成 2026-10-15（元信息核验+topics 补齐、缓议项 10 条清零、品牌隔离终检、计数一致复核；详见 [WRAPUP-M7.md](WRAPUP-M7.md)——**系列完结**） |
 
 **里程碑 DoD 纪律**：每个里程碑收尾时在 [data/README.md](../data/README.md) 台账回填实测证据；详细 DoD / 风险降级 / 可演示命令见 [06-里程碑.md](06-里程碑.md)。
 **M6 DoD 三件套（硬性）**：①`git tag`；②**GitHub Release 附产物**（本地留有 release zip 等产物副本并 **sha256 留档可复验**）；③**发布留档文件**（如 `plan/RELEASE-M6.md`）——"代码写完"≠"题做完"，缺任一项即 M6 未达成。

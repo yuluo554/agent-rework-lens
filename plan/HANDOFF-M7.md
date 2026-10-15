@@ -46,10 +46,10 @@ git status && git log --oneline | head -3
 
 ## 五、M7 DoD checklist（逐项验收）
 
-- [ ] README 状态/计数与末态一致；缓议项清零并留档
-- [ ] GitHub 元信息（description/topics/release）核验
-- [ ] 品牌隔离复查 + 全仓计数一致
-- [ ] 收尾交接档落盘 + commit + push
+- [x] README 状态/计数与末态一致；缓议项清零并留档（WRAPUP-M7 §二/§四）
+- [x] GitHub 元信息（description/topics/release）核验（WRAPUP-M7 §一）
+- [x] 品牌隔离复查 + 全仓计数一致（WRAPUP-M7 §三/§四）
+- [x] 收尾交接档落盘 + commit + push（plan/WRAPUP-M7.md，完结档）
 
 ## 六、诚实口径备忘
 
