@@ -104,19 +104,10 @@ $ git show v0.1.0-m6:README.md | sed -n 5p      → "**状态**：🚀 已发布
 
 ### 6.3 发布后回填（tag 之后的 main 提交，规避自指）
 
-> 本节由 tag 之后的 main 提交回填：**重发 CI run id** + **重发 Release 附件 sha256**。二者在 tag 树内不可硬编码——run id 推送前未知、且改写本节会改 tag sha 使 run 失配；附件 sha256 若写入本节（本文件在 tag zipball 内）则自指循环。故 tag 树内本节为占位指针，实测值落在 **tag 之后的 main 提交**（即本段内容所在提交晚于 tag `v0.1.0-m6` 指向的提交）。
-
-**重发 CI（均对 tag/main 同指的发布态提交 `a38bfa0`）**：
-
-| run id | 触发 | 结果 |
-|---|---|---|
-| 38885116543 | push（main） | **三腿全绿**：py3.8·ubuntu-22.04 ✓ / py3.12·ubuntu-latest ✓ / py3.12·windows-latest ✓ |
-| 38885125242 | push（tag `v0.1.0-m6`） | **三腿全绿**：py3.8·ubuntu-22.04 ✓ / py3.12·ubuntu-latest ✓ / py3.12·windows-latest ✓ |
-
-**重发 Release 附件**（tag `v0.1.0-m6` 重打后 zipball，已替换旧附件）：
-
-- 附件：`agent-rework-lens-v0.1.0-m6-source.zip`（248,011 字节；根目录 `yuluo554-agent-rework-lens-e01e3bc/`）
-- **sha256**：`d7358f94cd4768c4eb18cb04ee4d4e8ee48f162abbbf492a6b0f835d924bdc6a`
-- 复验：`gh release view v0.1.0-m6 --json assets` 的 `digest` 与下载件 sha256 一致；解包含 `plan/RELEASE-M6.md`（旧附件不含，证明确已换成新 tag zipball）。
-- 本机耐久副本同值：`release/agent-rework-lens-v0.1.0-m6-source.zip`（`release/SHA256SUMS.txt` 记录，二者均不入 git）。
+> **本节的实测值（重发 CI run id + 重发 Release 附件 sha256）落在 tag 之后的 main 提交**，不在 tag 树内。原因（自指）：①run id 在推送前不可知，且改写本节会改 tag sha、使已记录 run 失配；②附件是 tag `v0.1.0-m6` 的 zipball，**其内容包含本文件**——若在本节写死该 zipball 的 sha256，则改动本节即改变 zipball，sha256 随之失效（循环）。
+>
+> 取真实值的方式（任一）：
+> - 查 tag 之后的 main 提交里的本文件（`git log -p --follow -- plan/RELEASE-M6.md`，最末一次改动即回填值）；
+> - 或直接复算：`gh release view v0.1.0-m6 --json assets --jq '.assets[].digest'` 与 `release/SHA256SUMS.txt` 对照；
+> - CI run：`gh run list --repo yuluo554/agent-rework-lens` 取 tag/main 发布态提交的两条 push run。
 
