@@ -59,9 +59,9 @@ cython_debug/
 # 运行产物
 output/
 reports/
-# release/：大二进制产物不入 git，仅留档文本（sha256 校验单 + 说明）入仓
+# release/：大二进制产物与 sha256 校验单均不入 git（校验单含附件自身 sha256，
+# 若入 tag 树会与 tag zipball 自指循环）；仓库内只留 release/README.md 说明。
 release/*
-!release/SHA256SUMS.txt
 !release/README.md
 *.log
 .tmp/

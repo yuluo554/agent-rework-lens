@@ -11,7 +11,9 @@
 | 文件 | 说明 |
 |---|---|
 | `agent-rework-lens-v0.1.0-m6-source.zip` | tag `v0.1.0-m6` 源码 zip（Release 附件同名件）；**大二进制，不入 git** |
-| `SHA256SUMS.txt` | 上述 zip 的 sha256 校验单（入 git） |
+| `SHA256SUMS.txt` | 上述 zip 的 sha256 校验单；**不入 git**（含附件自身 sha256，若入 tag 树会与 tag zipball 自指循环） |
+
+> 说明：本说明文件 `release/README.md` 入 git；同目录两个文件均被 `.gitignore`（`release/*`）排除，仅在本机耐久留存。附件 sha256 的**实测值**另见 `plan/RELEASE-M6.md` §6.3（tag 之后的 main 提交回填，规避自指）。
 
 ## 复验
 

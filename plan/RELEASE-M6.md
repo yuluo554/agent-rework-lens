@@ -43,7 +43,7 @@ CI workflow `on: push + pull_request`，同一 commit 的 run 与 push 逐条对
 
 - **本地耐久副本**（仓库内、`.gitignore` 已忽略大二进制，不盲入 git）：
   `D:\ProgramData\zcode\10-16-agent-rework-lens\release\agent-rework-lens-v0.1.0-m6-source.zip`
-  - 同目录 `release/SHA256SUMS.txt` 记录其 sha256（随副本一同落在本机，避免把大二进制塞进 git 历史）。
+  - 同目录 `release/SHA256SUMS.txt` 记录其 sha256（与本机副本同落，未入 git）。
 - **可复算命令**（无需信任留档中硬编码的数字，任何时刻可重算）：
   ```bash
   gh release download v0.1.0-m6 --repo yuluo554/agent-rework-lens \
@@ -52,7 +52,7 @@ CI workflow `on: push + pull_request`，同一 commit 的 run 与 push 逐条对
   # 与本机耐久副本对照：
   sha256sum "D:/ProgramData/zcode/10-16-agent-rework-lens/release/agent-rework-lens-v0.1.0-m6-source.zip"
   ```
-- **重发产物 sha256 与 CI run id 回填见 §六**（重发后实测值；因 Release 附件为 tag 的 zipball、而本文件在 tag 树内，附件自身 sha256 无法硬编码进同一提交——故 §六 记录"上传后下载复验"的实测值与可复算命令，并另存 `release/SHA256SUMS.txt`）。
+- **自指说明（为何本文件不硬编码重发附件 sha256）**：重发附件为 tag `v0.1.0-m6` 的 zipball，其内容**包含本文件**——若在本文件内写死该 zipball 的 sha256，则改动本文件即改变 zipball 内容、sha256 随之失效（自指循环）。故**具体值不在 tag 树内硬编码**，改由：①上文可复算命令；②本机耐久副本 `release/SHA256SUMS.txt`；③本档"§6.3 发布后回填"（tag 之后的 main 提交，实测值）。首发布的旧附件（M5 收尾态 zipball）sha256 见 §3.1（历史事实，与本文件无自指关系）。
 
 ## 四、发布实录（网络坑实录）
 
@@ -78,10 +78,33 @@ CI workflow `on: push + pull_request`，同一 commit 的 run 与 push 逐条对
 | 6 | 决策记录手写阈值数值（`plan/07` D-M3-1、`HANDOFF-M1.md` 等"3 / 3 / 0.9"） | 统一改为引用常量名（`REWORK_MIN_VERSIONS` / `REWORK_MIN_EDITS` / `DUP_MATCH_THRESHOLD`），并标注"数值以 config.py 单点为准" | `grep -rn '3 / 3 / 0.9\|N=3\|相似度 0.9' plan/ docs/ README.md` 0 命中（K1 口径） |
 | 7 | `plan/01` §五 边界类型枚举不全（漏 `near_miss`） | §五 补"边界类型枚举以 plan/05 §4.2 与 manifest `coverage.min_count_by_type` 为准"并列出 4 类 | plan/01 §五 含 `missing_chain`/`single_edit`/`threshold_exact`/`near_miss` |
 
-### 6.1 重发产物 sha256 与 Release 附件复验（回填）
+### 6.1 重发 CI（口径）
 
-<!-- AUDIT-ARTIFACT -->
+重写邮箱改所有 sha → 重发为新 push：**main 推**与**tag 推**各触发一次 CI（`on: push`），两者对**同一发布态提交**（tag 与 main 同 commit）。**实测 run id 见 §6.3**（tag 之后的 main 提交回填——run id 在推送前不可知，且重打 tag 会改 sha、使旧 run id 失效，故不在 tag 树内硬编码）。
 
 ### 6.2 邮箱重写与 tag 重打实测（回填）
 
-<!-- AUDIT-EMAIL -->
+**本地**：
+```text
+$ git log --format='%ae %ce' | sort -u
+282769740+yuluo554@users.noreply.github.com 282769740+yuluo554@users.noreply.github.com
+```
+**远端**（`gh api repos/yuluo554/agent-rework-lens/commits --jq '.[].commit.author.email' | sort -u`）：
+```text
+282769740+yuluo554@users.noreply.github.com
+```
+全部提交（10 条原史 + 4 条审计修复）author/committer 邮箱均只剩 noreply；`git filter-repo --email-callback` 实跑，重写后 `git push --force origin main` 与 `git push --force origin refs/tags/v0.1.0-m6` 均成功（**SSH 通路**：本机 `https://github.com:443` 不可达，见 §四 网络注记）。
+
+**tag 指向核验**：
+```text
+$ git rev-parse v0.1.0-m6^{commit}   → 发布态提交（含 plan/RELEASE-M6.md / plan/WRAPUP-M7.md / plan/HANDOFF-M7.md）
+$ git cat-file -e v0.1.0-m6:plan/RELEASE-M6.md   → 成功（旧 tag 树此路径缺失）
+$ git show v0.1.0-m6:README.md | sed -n 5p      → "**状态**：🚀 已发布 v0.1.0-m6…"（旧 tag 树为"功能完整（M5）"）
+```
+
+### 6.3 发布后回填（tag 之后的 main 提交，规避自指）
+
+> 本节由 tag 之后的 main 提交回填：**重发 CI run id** + **重发 Release 附件 sha256**。二者在 tag 树内均不可知/会自指（run id 推送前未知；附件为 tag zipball、含本文件），故落此处。
+
+<!-- AUDIT-ARTIFACT -->
+
