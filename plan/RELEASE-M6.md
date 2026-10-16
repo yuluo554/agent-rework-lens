@@ -113,3 +113,14 @@ $ git show v0.1.0-m6:README.md | sed -n 5p      → "**状态**：🚀 已发布
 >
 > （本节实测值见 **tag 之后的 main 提交**；tag 树内本行以下为空——避免 zipball 自指。）
 
+<!-- 以下为 tag 之后回填的实测值（tag 树内无此行） -->
+**实测回填（2026-10-16，发布态提交 `b5a5a55`）**：
+
+| 项 | 值 |
+|---|---|
+| 重发 CI · main | run **38887245532**（push，`b5a5a55`）三腿全绿：py3.8·ubuntu-22.04 / py3.12·ubuntu-latest / py3.12·windows-latest |
+| 重发 CI · tag `v0.1.0-m6` | run **38887253301**（push，`b5a5a55`）三腿全绿 |
+| 重发 Release 附件 | `agent-rework-lens-v0.1.0-m6-source.zip`，248,237 字节，根目录 `yuluo554-agent-rework-lens-03196cd/` |
+| 附件 sha256 | `fb663793fff60576c0a48c5fb64ab4be15e98ae9d2a5bc2a803320ca3b095fcf`（`gh release view` 的 `digest`、下载件、本机耐久副本三者一致） |
+| 附件内容核验 | 解包含 `plan/RELEASE-M6.md`（旧附件不含，证明确已换成新 tag zipball） |
+
