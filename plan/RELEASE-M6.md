@@ -111,3 +111,14 @@ $ git show v0.1.0-m6:README.md | sed -n 5p      → "**状态**：🚀 已发布
 > - 或直接复算：`gh release view v0.1.0-m6 --json assets --jq '.assets[].digest'` 与 `release/SHA256SUMS.txt` 对照；
 > - CI run：`gh run list --repo yuluo554/agent-rework-lens` 取 tag/main 发布态提交的两条 push run。
 
+<!-- 以下为 tag 之后回填的实测值（tag 树内无此行） -->
+**实测回填（2026-10-16，发布态提交 `606ad75`）**：
+
+| 项 | 值 |
+|---|---|
+| 重发 CI · main | run **38885946679**（push，`606ad75`）三腿全绿：py3.8·ubuntu-22.04 / py3.12·ubuntu-latest / py3.12·windows-latest |
+| 重发 CI · tag `v0.1.0-m6` | run **38885958377**（push，`606ad75`）三腿全绿 |
+| 重发 Release 附件 | `agent-rework-lens-v0.1.0-m6-source.zip`，248,172 字节，根目录 `yuluo554-agent-rework-lens-ce7273c/` |
+| 附件 sha256 | `f84a5bbc41f82e837308c76f56eabd3688877ceced346a85988c78d22c76e741`（`gh release view` 的 `digest` 与下载件、本机耐久副本三者一致） |
+| 附件内容核验 | 解包含 `plan/RELEASE-M6.md`（旧附件不含，证明确已换成新 tag zipball） |
+
