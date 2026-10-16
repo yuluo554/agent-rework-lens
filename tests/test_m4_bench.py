@@ -27,11 +27,11 @@ DATA_DIR = REPO_ROOT / "data" / "synthetic"
 def test_bench_all_cases_match_truth():
     result = run_bench(DATA_DIR)
     assert not result.not_enabled
-    assert result.case_count == 11
+    assert result.case_count == 12
     assert result.rework_total == 4
     assert result.rework_hit == result.rework_total
     assert result.false_positive == 0
-    assert result.not_rework_total == 6
+    assert result.not_rework_total == 7
     assert result.anchor_ok == result.anchor_total
     assert result.anchor_total > 0
     assert result.passed, result.failures()
@@ -157,6 +157,22 @@ def test_mutation_threshold_shift_kills_bench(bench_copy, monkeypatch):
     assert any("codex-rework-03" in f for f in result.failures()), result.failures()
 
 
+def test_mutation_high_similarity_branch_kills_bench(bench_copy, monkeypatch):
+    """探活 D（粗匹配第二级）：把高相似阈值抬到 1.0 → duplicate-03 的
+    high_similarity 分支塌掉（归一化不等且 ratio < 1.0）→ 基准必须报未达标；
+    同时确认该分支确被 bench 对账覆盖（duplicate-03 报符号候选失败）。
+    """
+    original = config.DUP_MATCH_THRESHOLD
+    monkeypatch.setattr(config, "DUP_MATCH_THRESHOLD", 1.0)
+    result = run_bench(bench_copy)
+    assert not result.passed
+    failures = result.failures()
+    assert any("duplicate-03" in f for f in failures), failures
+    # 恢复阈值 → 同一副本变绿（证明红来自该分支，而非其它偶发）
+    monkeypatch.setattr(config, "DUP_MATCH_THRESHOLD", original)
+    assert run_bench(bench_copy).passed
+
+
 def test_mutation_via_subprocess_recovered_green(bench_copy, tmp_path):
     """探活 C（真实通路）：写一个 sitecustomize 式的缺陷补丁文件，用
     PYTHONSTARTUP 不可行（交互才生效）→ 改用子进程 + -c 注入 patch 后调 main。
@@ -211,7 +227,7 @@ def test_cli_bench_ok_exit_zero(capsys):
     assert main(["bench", "--data-dir", str(DATA_DIR)]) == 0
     out = capsys.readouterr().out
     assert "达标" in out
-    assert "11 样例" in out
+    assert "12 样例" in out
 
 
 def test_cli_bench_not_enabled_exit_one(capsys, tmp_path):
@@ -250,7 +266,7 @@ def test_cli_bench_json_deterministic(capsys):
     payload = json.loads(first)
     assert payload["command"] == "bench"
     assert payload["passed"] is True
-    assert payload["summary"]["case_count"] == 11
+    assert payload["summary"]["case_count"] == 12
     # 机读 JSON 同样携带门槛来源对账（K1：数值只在下发数据）
     assert payload["coverage"]["required"]["rework"] == 2
 

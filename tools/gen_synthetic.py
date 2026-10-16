@@ -51,7 +51,7 @@ SEED = 20261015
 # ── 覆盖度门槛（数值只在 manifest 一处；生成器校验各类型例数 ≥ 门槛） ──
 MIN_COUNT_BY_TYPE = {
     "rework": 2,
-    "duplicate": 2,
+    "duplicate": 3,  # 两级粗匹配各至少一例（normalized_exact ×2 + high_similarity ×1）
     "normal": 2,
     "missing_chain": 1,
     "single_edit": 1,
@@ -359,17 +359,24 @@ def build_normal_claude(idx: int) -> dict:
     }
 
 
-def build_duplicate_claude(idx: int, near_miss: bool = False) -> dict:
-    """duplicate（归一化后精确相等 → 候选）与 near_miss（低于阈值 → 不命中）共用骨架。
+def build_duplicate_claude(idx: int, variant: str = "exact") -> dict:
+    """duplicate（归一化精确 / 高相似两条分支）与 near_miss（低于阈值 → 不命中）共用骨架。
 
-    已有符号 make_compute_helper ↔ 新符号：
-      - duplicate:  make_compute_wrapper（归一化同为 "compute" → normalized_exact）
-      - near_miss:  compute_parse_validator（归一化相似度 < DUP_MATCH_THRESHOLD → miss）
+    已有符号 make_compute_helper ↔ 新符号（variant 三态，覆盖 metrics.match_symbols
+    的两级匹配与反例）：
+      - exact:           make_compute_wrapper（归一化同为 "compute" → normalized_exact）
+      - high_similarity: make_compute_helpr（归一化 "computehelpr" ≠ "compute"，
+                         原始名 ratio ≈ 0.97 ≥ DUP_MATCH_THRESHOLD → high_similarity）
+      - near_miss:       compute_parse_validator（归一化相似度 < DUP_MATCH_THRESHOLD → miss）
     """
     sid = fake_sid(30 + idx)
     proj_root = FAKE_POSIX_ROOTS[0]
     existing_sym = "make_compute_helper"
-    new_sym = "compute_parse_validator" if near_miss else "make_compute_wrapper"
+    new_sym = {
+        "exact": "make_compute_wrapper",
+        "high_similarity": "make_compute_helpr",
+        "near_miss": "compute_parse_validator",
+    }[variant]
     target = f"{proj_root}/beta_b.py"
     existing_file = f"{proj_root}/common.py"
     lines = [
@@ -384,7 +391,7 @@ def build_duplicate_claude(idx: int, near_miss: bool = False) -> dict:
         ),
         claude_user_toolresult("ok", iso_at(2), sid),
     ]
-    if near_miss:
+    if variant == "near_miss":
         truth = {
             "case_type": "near_miss",
             "source": "claude_code",
@@ -397,6 +404,7 @@ def build_duplicate_claude(idx: int, near_miss: bool = False) -> dict:
             "threshold_note": "符号名近但不重：归一化相似度 < DUP_MATCH_THRESHOLD → 不应命中（反向样例）",
         }
     else:
+        reason = "high_similarity" if variant == "high_similarity" else "normalized_exact"
         truth = {
             "case_type": "duplicate",
             "source": "claude_code",
@@ -406,13 +414,18 @@ def build_duplicate_claude(idx: int, near_miss: bool = False) -> dict:
                 {
                     "new_symbol": new_sym,
                     "existing_symbol": existing_sym,
-                    "reason": "normalized_exact",
+                    "reason": reason,
                 }
             ],
             "expected_normal": [],
             "expect_status": "not_rework",
             "also_expect": {"dup_candidate_expected": True},
-            "threshold_note": "新写符号与项目已有符号归一化后精确相等 → 候选（披露制：非克隆判决）",
+            "threshold_note": (
+                "新写符号归一化后与已有符号不等，但原始名 ratio ≥ DUP_MATCH_THRESHOLD "
+                "→ high_similarity 候选（披露制：非克隆判决）"
+                if reason == "high_similarity"
+                else "新写符号与项目已有符号归一化后精确相等 → 候选（披露制：非克隆判决）"
+            ),
         }
     return {
         "sid": sid,
@@ -632,7 +645,7 @@ def build_all_cases() -> list:
     cases.append(build_rework_claude(idx, REWORK_MIN_VERSIONS)); idx += 1
     cases.append(build_rework_claude(idx, REWORK_MIN_VERSIONS + 1)); idx += 1
     cases.append(build_rework_codex(idx, REWORK_MIN_EDITS + 1)); idx += 1
-    # duplicate ×2
+    # duplicate ×2（normalized_exact）
     cases.append(build_duplicate_claude(idx)); idx += 1
     cases.append(build_duplicate_claude(idx)); idx += 1
     # normal ×2（Claude + Codex）
@@ -646,7 +659,10 @@ def build_all_cases() -> list:
     cases[-1]["truth"]["threshold_note"] = (
         "版本数恰好 = REWORK_MIN_VERSIONS（≥ 判据含等于 → 应命中）"
     )
-    cases.append(build_duplicate_claude(idx, near_miss=True)); idx += 1
+    cases.append(build_duplicate_claude(idx, variant="near_miss")); idx += 1
+    # duplicate 第二级（high_similarity）：**追加在末尾**，使既有样例的 session id /
+    # 冻结字节不因新增而漂移（审计修复补入 bench 对账覆盖）
+    cases.append(build_duplicate_claude(idx, variant="high_similarity")); idx += 1
     return cases
 
 
@@ -733,6 +749,16 @@ def main(argv: list) -> int:
         ).encode("utf-8")
 
         if not args.check:
+            # "整目录重生成"契约：先清 samples/ 再落盘，避免样本数变化时留下
+            # 未登记的陈旧冻结件（否则 --check 的"未登记现存文件"闸会误红）。
+            samples_dir = OUT_DIR / "samples"
+            if samples_dir.exists():
+                for p in sorted(samples_dir.rglob("*"), reverse=True):
+                    if p.is_file() or p.is_symlink():
+                        p.unlink()
+                    elif p.is_dir():
+                        p.rmdir()
+                samples_dir.rmdir()
             if MANIFEST_PATH.exists():
                 MANIFEST_PATH.unlink()
             for rel in manifest["sha256"]:

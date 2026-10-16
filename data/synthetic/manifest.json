@@ -13,7 +13,7 @@
   "coverage": {
     "min_count_by_type": {
       "rework": 2,
-      "duplicate": 2,
+      "duplicate": 3,
       "normal": 2,
       "missing_chain": 1,
       "single_edit": 1,
@@ -22,7 +22,7 @@
     },
     "actual_count_by_type": {
       "rework": 3,
-      "duplicate": 2,
+      "duplicate": 3,
       "normal": 2,
       "missing_chain": 1,
       "single_edit": 1,
@@ -56,6 +56,10 @@
     "samples/case-claude_code-duplicate-02/project/common.py": "a34f98024c2028db79cc71a5ab0e9342f8a62299bb406270fceed1ed939ccacc",
     "samples/case-claude_code-duplicate-02/session.jsonl": "9f4a0951e7e32366bf0016afd2d01e5e8d9cbbf7e551e49554dba43a1058f08f",
     "samples/case-claude_code-duplicate-02/truth.json": "3014f4cf75929c75b017cbc0c7ae0ac7f2899e070689c03828f48f64723c0518",
+    "samples/case-claude_code-duplicate-03/project/beta_b.py": "88306f599f383e5f9b6fd26717e5f049ce5132f1b6ff47af7023561238e9e31d",
+    "samples/case-claude_code-duplicate-03/project/common.py": "a34f98024c2028db79cc71a5ab0e9342f8a62299bb406270fceed1ed939ccacc",
+    "samples/case-claude_code-duplicate-03/session.jsonl": "196f0821ba49603b73d3bf2332b6536f24c6830bfb976c0134aee5cb47248810",
+    "samples/case-claude_code-duplicate-03/truth.json": "36bcbc225bb1e386725fc8192abdf37941d65139fb9b19ef4723afe9f0cce4ea",
     "samples/case-claude_code-missing_chain-01/project/alpha_b.py": "5d3d82e9027fc2e03d36dbe9c7f347cc433193d87628e797f635f3611693ed4d",
     "samples/case-claude_code-missing_chain-01/session.jsonl": "3009285319ee689e7e401aefe9e718e0275fe96687f64a054232e5b759e2a079",
     "samples/case-claude_code-missing_chain-01/truth.json": "96f33ee272fc397b22e91e46d5c07ec1a687d59603ee0e0be9fd84e94d74744d",
