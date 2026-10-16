@@ -3,7 +3,7 @@
 **日期**：2026-10-15（首发布）· **审计修复重发**：2026-10-16 · **仓库**：https://github.com/yuluo554/agent-rework-lens（公开）
 **tag**：`v0.1.0-m6`（annotated）· **Release**：https://github.com/yuluo554/agent-rework-lens/releases/tag/v0.1.0-m6（draft=false 实测核验）
 
-> **tag 指向（审计修复后）**：`v0.1.0-m6` 重打至**发布态提交**（含 `plan/RELEASE-M6.md` / `plan/WRAPUP-M7.md` / `plan/HANDOFF-M7.md`，README 为"已发布"态，plan/00 台账与 plan/06 M6/M7 DoD 已回填）。核验：`git cat-file -e v0.1.0-m6:plan/RELEASE-M6.md` 成功、`git show v0.1.0-m6:README.md` 状态行为"已发布"。**首发布时 tag 误指向 M5 收尾态 `536b7d0`（tag 树缺 M6/M7 留档、README 仍写"功能完整（M5）"）——该缺陷已由本次重打修正（见 §六）。**
+> **tag 指向（审计修复后）**：`v0.1.0-m6` 重打至**发布态提交**（含 `plan/RELEASE-M6.md` / `plan/WRAPUP-M7.md` / `plan/HANDOFF-M7.md`，README 为"已发布"态，plan/00 台账与 plan/06 M6/M7 DoD 已回填）。核验：`git cat-file -e v0.1.0-m6:plan/RELEASE-M6.md` 成功、`git show v0.1.0-m6:README.md` 状态行为"已发布"。**首发布时 tag 误指向 M5 收尾态（重写前 `536b7d0`，重写后同内容提交为 `996ca7e`；tag 树缺 M6/M7 留档、README 仍写"功能完整（M5）"）——该缺陷已由本次重打修正（见 §六）。**
 
 ## 一、发布前置清单（逐条实测）
 
@@ -21,10 +21,12 @@
 
 | run id | 触发 | 结果 |
 |---|---|---|
-| 38739618483 | push（main 首推，commit 536b7d0） | **三腿全绿**：py3.8·ubuntu-22.04 ✓（27s）/ py3.12·ubuntu-latest ✓（14s）/ py3.12·windows-latest ✓（36s） |
-| 38739916516 | push（tag 分支，commit 536b7d0） | 三腿全绿 |
-| 38740360820 | push（main，commit b223be6） | 三腿全绿 |
-| 38742655059 | push（main，commit f1d5857） | 三腿全绿 |
+| 38739618483 | push（main 首推） | **三腿全绿**：py3.8·ubuntu-22.04 ✓（27s）/ py3.12·ubuntu-latest ✓（14s）/ py3.12·windows-latest ✓（36s） |
+| 38739916516 | push（tag 分支） | 三腿全绿 |
+| 38740360820 | push（main，M6 发布提交） | 三腿全绿 |
+| 38742655059 | push（main，M7 收尾提交） | 三腿全绿 |
+
+> 上表为**首发布时**的 run（对应重写前的 commit sha，重写邮箱后这些 sha 已不存在于远端，run 记录仍可在 GitHub Actions 历史页查看）；**审计修复重发后的 run id 见 §6.1**。
 
 CI workflow `on: push + pull_request`，同一 commit 的 run 与 push 逐条对应；首跑即全绿（无诊断轮次）。
 注记（非失败）：actions/checkout@v4、setup-python@v5 的 Node.js 20 deprecation 警告；ubuntu-latest 将于 2026-10-19 起迁移 Ubuntu 26。后续升级 actions 版本可消除，不影响 M6 结论。
@@ -33,7 +35,7 @@ CI workflow `on: push + pull_request`，同一 commit 的 run 与 push 逐条对
 
 ### 3.1 首发布（M5 收尾态 zipball，历史留档）
 
-- 附件：`agent-rework-lens-v0.1.0-m6-source.zip`（228,532 字节，**首发布时**为 tag `v0.1.0-m6` 的 zipball，tag 当时指向 M5 收尾态 `536b7d0`）
+- 附件：`agent-rework-lens-v0.1.0-m6-source.zip`（228,532 字节，**首发布时**为 tag `v0.1.0-m6` 的 zipball，tag 当时指向 M5 收尾态）
 - **zip sha256**：`2f4b397eddce48a0674efb7b5a8d2f0296a550930b61377d4e4d87691df54a10`
 - 复验：下载附件解包 → `data/synthetic/manifest.json` 与仓库当时 HEAD 位级一致；抽样 fixture `case-claude_code-duplicate-01/session.jsonl` sha256 与 manifest 登记值一致（`f65cf846…b57a3f`）。
 
@@ -69,7 +71,7 @@ CI workflow `on: push + pull_request`，同一 commit 的 run 与 push 逐条对
 | # | 缺陷 | 修复 | 实测证据 |
 |---|---|---|---|
 | 1 | 全部提交作者邮箱为真实 QQ 邮箱（隐私泄露，已推公开远端） | 用 `git filter-repo --email-callback` 把**全部**提交的 author/committer 邮箱改写为 `282769740+yuluo554@users.noreply.github.com` | 本地 `git log --format='%ae %ce' \| sort -u` 只剩 noreply；远端 `gh api repos/yuluo554/agent-rework-lens/commits --jq '.[].commit.author.email' \| sort -u` 只剩 noreply（见 §6.2） |
-| 2 | tag `v0.1.0-m6` 指向 M5 收尾态 `536b7d0`，tag 树缺 `RELEASE-M6.md`/`WRAPUP-M7.md`/`HANDOFF-M7.md`，README 仍"M5 功能完整" | 删旧 tag，在**发布态提交**上重打 `v0.1.0-m6`；核对 Release 附件（tag zipball）并重传 | `git cat-file -e v0.1.0-m6:plan/RELEASE-M6.md` 成功；`git show v0.1.0-m6:README.md` 为"🚀 已发布"；`gh release view` draft=false + 附件 sha256 复验（见 §6.1） |
+| 2 | tag `v0.1.0-m6` 指向 M5 收尾态（重写前 `536b7d0`），tag 树缺 `RELEASE-M6.md`/`WRAPUP-M7.md`/`HANDOFF-M7.md`，README 仍"M5 功能完整" | 删旧 tag，在**发布态提交**上重打 `v0.1.0-m6`；核对 Release 附件（tag zipball）并重传 | `git cat-file -e v0.1.0-m6:plan/RELEASE-M6.md` 成功；`git show v0.1.0-m6:README.md` 为"🚀 已发布"；`gh release view` draft=false + 附件 sha256 复验（见 §6.1） |
 | 3 | plan/00 台账与里程碑表未回填（tag 树态"发布闭环 ⬜ 待 M6"、M6/M7"⬜ 待开工"、plan/06 M6/M7 DoD 全 `[ ]`） | 按末态全部回填 ✅（台账状态列与里程碑同步） | 工作树与 tag 树 plan/00 台账"发布闭环 ✅ M6"、plan/06 M6/M7 DoD 全 `[x]`、回写区含 M6/M7 |
 | 4 | 粗匹配两级只测到一级（`high_similarity` 分支仅单测、bench 未对账） | 生成器新增 `duplicate` 的 `high_similarity` 分支样例（`make_compute_helpr` ↔ `make_compute_helper`，ratio≈0.97 ≥ `DUP_MATCH_THRESHOLD`）；manifest `coverage.min_count_by_type.duplicate` 2→3；新增探活 D（抬 `DUP_MATCH_THRESHOLD`→1.0 → duplicate-03 塌） | `arl bench`：12 样例、rework 4/4、误报 0/7、锚点 26/26、达标；`--check` 51 件位级一致；探活 D 红→恢复绿 |
 | 5 | Release 产物本地副本仅在 `%TEMP%\arl-src\`（可被清理） | 仓库内 `release/` 建耐久副本 + `release/SHA256SUMS.txt`；留档给可复算下载命令（见 §三 3.2） | 副本 sha256 与 `gh release download` 下载件一致（见 §6.1） |

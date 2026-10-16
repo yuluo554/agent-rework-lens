@@ -33,7 +33,7 @@
 
 ### 仓库现状
 
-- 提交链：`ec34524`（题定稿）→ M0 commit（骨架+测试+CI）→ 本次 M1 commit（tools/ + data/synthetic/ + 守门测试 + 台账/plan 回写）；
+- 提交链：`48d9645`（题定稿；审计修复重写邮箱后短 sha）→ M0 commit（骨架+测试+CI）→ 本次 M1 commit（tools/ + data/synthetic/ + 守门测试 + 台账/plan 回写）；
 - 新增：`tools/gen_synthetic.py`（确定性生成器：splitmix64、固定 seed 20261015、常量时间戳、LF/无 BOM、K10 护栏）、`data/synthetic/**`（冻结，`.gitattributes -text` 生效）、`tests/test_synthetic_data.py`（8 项守门）；
 - 决策记录：plan/07 §3.3 D-M1-1..7（@vN 语义 / 快照口径 / Codex 解析口径 / MultiEdit 处置 / 稀疏性处置 / 台账哈希形态 / truth schema）。
 

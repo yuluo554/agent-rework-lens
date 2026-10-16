@@ -7,7 +7,7 @@
 
 ## 一、当前进度 + 证据
 
-### M5 已完成（plan/06 M5 全部 DoD 打勾；commit 2e5a032 + 本次收尾 commit）
+### M5 已完成（plan/06 M5 全部 DoD 打勾；commit 19d3557 + 本次收尾 commit）
 
 | DoD 项 | 证据 |
 |---|---|
@@ -15,7 +15,7 @@
 | 符号候选进报告 | pipeline 重读会话 Write 载荷提取新写符号（与 bench 同构，D-M5-1）；已有符号 = Read 过且磁盘存在的 `.py`（04 §7.3）；源根 = `<home>/projects`；Codex 源符号候选**未启用并显式披露**（D-M5-2）；未支持语言写入 → 显式披露跳过 |
 | `docs/TECHNICAL-REPORT.md` | 落盘 6 节：问题与交付形态 / 数据流与 schema / 判定口径（三态+粗匹配+锚点）/ 确定性纪律与可证伪基准 / 隐私设计 / 已知边界（诚实口径） |
 | README 演示节 + 退出码对账 | 新增"演示"节（可复制命令 + 预期输出形态 + 报告章节说明）；退出码表对齐 `exitcodes.py`：0/1/2/3 四码 + "4 已于 M2 退役（D-M2-1）"注记；状态行转"✅ 功能完整（M5）" |
-| 干净环境验证留档 | 全新 clone（commit 2e5a032）+ 全新 venv **双解释器**（3.12 / 3.8）`pip install -e ".[dev]"` → pytest **150+150 全绿**；5 命令逐条跑：`version`/`sources`/`selftest`/`bench` 退出码全 0；退出码语义逐条符合——`scan` 无源 → **3**（不伪造空报告）、`badcmd` → **2**、`bench --data-dir /nonexistent` → **1**（not_enabled）；合成数据副本演示 `scan --report-md/--report-html` → 退出码 0 + 报告落盘 + HTML 外链 grep **0 命中** |
+| 干净环境验证留档 | 全新 clone（commit 19d3557）+ 全新 venv **双解释器**（3.12 / 3.8）`pip install -e ".[dev]"` → pytest **150+150 全绿**；5 命令逐条跑：`version`/`sources`/`selftest`/`bench` 退出码全 0；退出码语义逐条符合——`scan` 无源 → **3**（不伪造空报告）、`badcmd` → **2**、`bench --data-dir /nonexistent` → **1**（not_enabled）；合成数据副本演示 `scan --report-md/--report-html` → 退出码 0 + 报告落盘 + HTML 外链 grep **0 命中** |
 | 三方对账 | `tests/test_m5_report.py::test_three_way_equivalence`：CLI 落盘报告 = pipeline 直调渲染（逐字节）= CLI stdout verdict 行文件均在报告；另有双跑确定性、锚点列、披露、Codex 未启用、未支持语言、零外链共 7 项新测试 |
 | 全量测试 | **3.12：150 passed；3.8：150 passed**（M4 末态 143 + M5 新增 7）；`gen_synthetic --check` 47 件位级一致（M5 未动 fixtures） |
 

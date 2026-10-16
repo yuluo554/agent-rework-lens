@@ -12,7 +12,7 @@
 | 脱敏扫描全 0 | 工作树 grep（用户名/目录前缀/邮箱/token 形态串）0 命中；历史 8 commit / 229 对象 / 142 路径扫描 0 命中（唯一命中 `C:\Users\<user>` 为 M1 台账尖括号占位豁免）；fixtures 白名单假名合规 + manifest sha256 冻结（`gen_synthetic --check` 0）；plan/ 无系列前作与业务领域词 |
 | 建仓 + 首推 | 公开仓 https://github.com/yuluo554/agent-rework-lens（用户确认后建仓）；main 首推成功（网络不稳，重试循环 + ls-remote 复核） |
 | CI 三腿全绿 | run 38739618483（push 触发，逐条配对）：py3.8·ubuntu-22.04 ✓ 27s / py3.12·ubuntu-latest ✓ 14s / py3.12·windows-latest ✓ 36s；首跑即绿，无诊断轮次 |
-| tag + Release | tag `v0.1.0-m6`（annotated，指向 536b7d0）；Release draft=false 实测；附件 `agent-rework-lens-v0.1.0-m6-source.zip`（228,532 B）sha256 `2f4b397e…f54a10`，解包复验 manifest/fixture 与仓库 HEAD 位级一致 |
+| tag + Release | tag `v0.1.0-m6`（annotated）；Release draft=false 实测；附件 `agent-rework-lens-v0.1.0-m6-source.zip`（228,532 B）sha256 `2f4b397e…f54a10`，解包复验 manifest/fixture 与仓库 HEAD 位级一致（**注**：审计修复已将 tag 重打至发布态提交并重传附件，末态 sha256 与 run id 见 RELEASE-M6 §六） |
 | 留档 | plan/RELEASE-M6.md 入库（命令+结果+run id+网络坑实录）；README 状态行转"🚀 已发布 v0.1.0-m6" |
 
 **M6 决策**（续入 plan/07 时建议编号 D-M6-1..2）：

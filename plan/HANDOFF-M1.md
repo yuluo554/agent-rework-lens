@@ -21,7 +21,7 @@
 
 ### 仓库现状
 
-- 提交链：`ec34524`（题定稿）→ 本次 M0 commit（plan/00–07 + 骨架 + 测试 + CI）；
+- 提交链：`48d9645`（题定稿；审计修复重写邮箱后短 sha，下同）→ 本次 M0 commit（plan/00–07 + 骨架 + 测试 + CI）；
 - 工程：`pyproject.toml`（零运行时依赖，dev=pytest）、src 布局单包 `agent_rework_lens`、`.gitattributes`（EOL 归一 + `data/synthetic/** -text` 预案）、README/LICENSE；
 - 核心层：`config`（阈值单点）/ `exitcodes` / `stdio`（护栏）/ `errors`（NoSourcesFound·StageNotReady）/ `discovery`（递归发现+缺源语义）/ `ir`（schema v1 frozen dataclass）/ `parsers`（common 已实现，双源骨架拦截）/ `engine`（metrics 计数助手已实现，rework/symbols 拦截）/ `report`（markdown+html 渲染器已实现，含披露与零外链）/ `pipeline` / `selftest` / `cli`；
 - 测试 59 项：exitcodes / config AST 守门 / ir 确定性 / stdio（cp1252 复现+cp936 不动+阳性对照）/ discovery（递归/缺源/优先级/确定性）/ cli（分支+子进程）/ report（披露/零外链/确定性/空节）/ engine / parsers / selftest。
