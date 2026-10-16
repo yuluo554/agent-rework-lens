@@ -12,12 +12,12 @@
 | DoD 项 | 证据 |
 |---|---|
 | 合成真值驱动的检测对账通过 | `tests/test_m3_engine.py::test_engine_matches_truth`：11 case 逐例参数化——rework-01/02/threshold_exact-01 命中（版本 3/4/3，`versions>=N`）、codex-rework-03 命中（`edits>=M`，apply_patch 4 次）、duplicate-01/02 引擎侧符号候选对账（`normalized_exact`）、single_edit/normal/near_miss → not_rework、missing_chain → insufficient_data |
-| 反例全绿 | near_miss（ratio ≈ 0.48 < 0.9 不命中）/ single_edit（链 =1）/ normal（纯 Write 无链）不命中；missing_chain → insufficient_data 且 `version_count=None`、理由含 `version_chain_missing`（K4 不猜测） |
+| 反例全绿 | near_miss（ratio ≈ 0.48 < `DUP_MATCH_THRESHOLD` 不命中）/ single_edit（链 =1）/ normal（纯 Write 无链）不命中；missing_chain → insufficient_data 且 `version_count=None`、理由含 `version_chain_missing`（K4 不猜测） |
 | 阈值改动一处 → 全链路同变 | `test_threshold_edits_change_flips_verdict_everywhere`（monkeypatch 改 `config.REWORK_MIN_EDITS` → verdict 翻转）/ `test_threshold_versions_change_flips_verdict` / `test_dup_threshold_change_affects_matching`（改 `DUP_MATCH_THRESHOLD` → 匹配翻转） |
 | Read:Edit 比 + 符号提取 + 粗匹配 | `engine/metrics.py`（除零 → None 不填 0/inf；`compute_session_metrics` 聚合；`writes_by_kind` 有序键值）+ `engine/symbols.py`（def/class 正则 + 未支持语言显式 `None`）+ 归一化 5 步（plan/04 §7.4 冻结口径）+ K5 披露单点 `DUP_DISCLOSURE`（迁至 metrics，report/model 引用，D-M3-4） |
 | `arl scan` 输出引擎结构化摘要 | `run_scan` 接 `analyze_rework` → `ScanOutcome.findings`（按 session/file/verdict 排序）；CLI 输出三态计数（阈值取 config 运行时值）+ 逐 finding 的版本/编辑/跨度/理由/证据锚点。实测 11 case 全量：`4 项 rework / 1 项 insufficient_data / 6 项 not_rework`，与 truth 全对上 |
 | 确定性 | CLI scan 双跑逐字节一致；3.8 与 3.12 输出一致 |
-| 阈值校准定稿 | **D-M3-1**：N=3 / M=3 / 相似度 0.9（初始值经基准校准后原值定稿；threshold_exact `≥` 语义命中 / near_miss 不命中即校准依据）；plan/07 §3.5 |
+| 阈值校准定稿 | **D-M3-1**：`REWORK_MIN_VERSIONS` / `REWORK_MIN_EDITS` / `DUP_MATCH_THRESHOLD` 三常量经基准校准后原值定稿（**数值见 config.py 单点**；threshold_exact `≥` 语义命中 / near_miss 不命中即校准依据）；plan/07 §3.5 |
 | 全量测试 | **3.12：125 passed**；**3.8：125 passed**——M2 末态 101 + M3 新增/改 24；`gen_synthetic --check` 47 件位级一致（本次未动 fixtures） |
 
 ### M3 关键实现口径（M4 runner 的直接输入）

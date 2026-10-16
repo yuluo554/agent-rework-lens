@@ -46,7 +46,7 @@ arl selftest                           # 内置自检
 ## 基准（`arl bench`）
 
 ```bash
-arl bench                 # 合成基准：11 个样例逐例与 truth.json 对账
+arl bench                 # 合成基准：12 个样例逐例与 truth.json 对账
 arl bench --json          # 机读输出（确定性 sort_keys）
 arl bench --data-dir <目录>
 ```

@@ -128,15 +128,15 @@
 ### 3.1 生成器说明（M1 落地）
 
 - **脚本**：`tools/gen_synthetic.py`（自研 splitmix64 RNG、seed 固定于 manifest；**禁 stdlib random、禁系统时钟**；所有时间戳为常量）；
-- **命令**：`py -X utf8 tools/gen_synthetic.py`（生成/重生成整目录）；`py -X utf8 tools/gen_synthetic.py --check`（重生成与冻结件**逐字节比对**，差异 → exit 1）；
-- **样本矩阵**：7 类（rework / duplicate / normal / missing_chain / single_edit / threshold_exact / near_miss），阈值**读 `agent_rework_lens.config`，不抄数值**（K1）；真值 truth.json 生成时同步标注（plan/05 §4.3 字段集）；
+- **命令**：`py -X utf8 tools/gen_synthetic.py`（生成/重生成**整目录**：先清 `samples/` 再落盘，避免样本数变化留下陈旧冻结件）；`py -X utf8 tools/gen_synthetic.py --check`（重生成与冻结件**逐字节比对**，差异 → exit 1）；
+- **样本矩阵**：7 类（rework / duplicate / normal / missing_chain / single_edit / threshold_exact / near_miss），阈值**读 `agent_rework_lens.config`，不抄数值**（K1）；真值 truth.json 生成时同步标注（plan/05 §4.3 字段集）；**duplicate 覆盖粗匹配两级**——`normalized_exact` ×2 + `high_similarity` ×1（后者走 `DUP_MATCH_THRESHOLD` 高相似分支，进入 bench 对账）；
 - **形态忠实度**：Claude/Codex 行形态按 §2.6 R3–R6 核对结论构造（字段名、嵌套结构、V4A 指令行、快照 4 字段 entry）；
 - **确定性验证**：双跑逐字节一致（实测通过）；`--check` 守门入 pytest（`tests/test_synthetic_data.py`）。
 
 ### 3.2 冻结登记（M1）
 
 - **冻结范围**：`data/synthetic/**`（manifest.json + samples/ 全部文件）；**禁手改**，改动走生成器整目录重生成；
-- **sha256 三联动**：manifest 内 `sha256` 映射 ↔ 实际文件 ↔ 本台账登记（**47 个冻结文件**，样例 11 case，基准日 2026-10-15；逐文件哈希以 manifest 为准，本台账登记总数——台账不抄第二份哈希清单，防漂移）；
+- **sha256 三联动**：manifest 内 `sha256` 映射 ↔ 实际文件 ↔ 本台账登记（**51 个冻结文件**，样例 12 case，基准日 2026-10-15；逐文件哈希以 manifest 为准，本台账登记总数——台账不抄第二份哈希清单，防漂移）；
 - **覆盖度门槛**（数值单点在 manifest `coverage.min_count_by_type`，此处不复制数值）：7 类各有最低例数；实际计数见 manifest `actual_count_by_type`；
 - **EOL 冻结**：`.gitattributes` `data/synthetic/** -text` 已生效（克隆/检出不改字节，sha256 稳定）；
 - **守门测试**：`tests/test_synthetic_data.py` 8 项（sha256 三处一致 / `--check` 子进程位级 / 覆盖度达标 / truth schema / 白名单形态 / 零真实值扫描 fixtures + 全仓 / .gitattributes 规则）；

@@ -20,7 +20,7 @@
 
 | # | 缓议项 | 结论 | 理由 / 留档位 |
 |---|---|---|---|
-| 1 | 阈值 N / M / 相似度取值 | **已定稿**（D-M3-1：3 / 3 / 0.9） | config.py 单点；变更走决策记录 |
+| 1 | 阈值 N / M / 相似度取值 | **已定稿**（D-M3-1：`REWORK_MIN_VERSIONS` / `REWORK_MIN_EDITS` / `DUP_MATCH_THRESHOLD`；数值见 config.py 单点） | config.py 单点；变更走决策记录 |
 | 2 | GitHub 仓库可见性 | **已定稿**（公开，M6 落地） | 01 出题阶段确认；RELEASE-M6 |
 | 3 | 仓库 description / topics | **已做**（M7 本档 §一核验+补齐） | 本档 §一 |
 | 4 | pipx / PyPI 发布 | **跳过**（显式决策 D-M7-1） | 零第三方依赖，`pip install -e .` 即全功能；Release 已附源码 zip；PyPI 引入发布链路与凭据面，无对应需求 |
@@ -43,13 +43,13 @@
 
 | 口径 | 各处数值 | 一致性 |
 |---|---|---|
-| 测试数（末态） | 本机实测 `py -3.12`：**150 passed**；`py -3.8`：**150 passed**；plan/06 M5 行与回写区 150+150；HANDOFF-M6/M7 150 | ✅ 一致 |
-| fixtures | `gen_synthetic --check`：**47 件位级一致**；plan/06 M1 行 47 文件 / 11 case | ✅ 一致 |
-| 基准 | plan/06 M4 行 11 样例 / 4 rework / 0 误报 / 25-25 锚点 | ✅ 未动数据面，仍有效 |
+| 测试数（末态） | 本机实测 `py -3.12`：**154 passed**；`py -3.8`：**154 passed**（审计修复新增 4 项：high_similarity 分支样例 + 探活 D 等）；plan/06 M5 行 150+150 为 M5 时点值 | ✅ 一致 |
+| fixtures | `gen_synthetic --check`：**51 件位级一致**；plan/06 M1 行 51 文件 / 12 case（M1 时点为 47 文件 / 11 case） | ✅ 一致 |
+| 基准 | plan/06 M4 行 12 样例 / 4 rework / 0 误报 / 26-26 锚点（审计修复后数据面） | ✅ 一致 |
 | 退出码 | README 表 0/1/2/3 与 tests/test_exitcodes.py、K2 一致 | ✅ 一致 |
 | 版本 | pyproject `version = "0.1.0"` 与 tag `v0.1.0-m6` 一致 | ✅ 一致 |
 
-README 状态行已转"🚀 已发布 v0.1.0-m6"（M6 完成），演示/退出码/指标口径各节与测试逐条对过账（M5 DoD）——M7 未发现漂移，未改 README。
+README 状态行已转"🚀 已发布 v0.1.0-m6"（M6 完成），演示/退出码/指标口径各节与测试逐条对过账（M5 DoD）；审计修复（2026-10-16）将基准样例计数 11→12 同步进 README 与技术报告。
 
 ## 五、本地基线复跑（M7 实测 2026-10-15）
 
@@ -59,14 +59,17 @@ py -3.8  -X utf8 -m pytest   → 150 passed in 3.01s
 py -X utf8 tools/gen_synthetic.py --check → 47 个冻结件位级一致
 ```
 
+> **审计修复复跑（2026-10-16）**：`py -3.12` → **154 passed**；`py -3.8` → **154 passed**；`gen_synthetic --check` → **51 个冻结件位级一致**；`arl bench` → 12 样例达标（4 rework / 0 误报 / 26-26 锚点）。
+
 ## 六、诚实口径（完结态）
 
 1. CI 三腿全绿（run 38739618483）但**未覆盖 macOS**；Node 20 deprecation 注记见 RELEASE-M6 §二（D-M7-4 缓升级）；
 2. Release 附件为源码 zip，非构建产物——零第三方依赖无需 wheel/sdist（D-M7-1 拒 PyPI）；
-3. 测试计数 150 为 M6 末态实测；M7 仅改 plan 文档，代码与测试零改动；
+3. 测试计数 150 为 M6 末态实测；M7 仅改 plan 文档，代码与测试零改动（审计修复后为 154，见 §四/§五注）；
 4. 指标中的检测率/误报率为**合成基准**口径，非真实会话统计（真实日志不入仓）。
 
 ## 七、系列完结声明
 
 M0–M7 全部完成：计划先行 → 数据先行 → 解析 → 引擎 → 基准 → 交付 → 发布 → 收尾。
-仓库终态：https://github.com/yuluo554/agent-rework-lens · tag `v0.1.0-m6` · CI 三腿全绿 · 150+150 测试 · 11 case 基准全对账。
+仓库终态：https://github.com/yuluo554/agent-rework-lens · tag `v0.1.0-m6` · CI 三腿全绿 · 154+154 测试 · 12 case 基准全对账。
+> **审计修复（2026-10-16）**：M0–M7 完成后按独立审计修复 7 项缺陷（提交邮箱脱敏重写 + tag 重打至发布态 + 粗匹配第二级入 bench + Release 产物耐久副本 + 阈值文档改引用常量名 + plan/01 边界枚举对齐 + 台账回填），留档见 [RELEASE-M6.md](RELEASE-M6.md) §六。

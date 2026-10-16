@@ -42,7 +42,7 @@
 
 ## 三、既定口径清单（K 编号，动了会打挂测试；全表 plan/07 §四）
 
-- **K1** 阈值单点：`REWORK_MIN_VERSIONS=3` / `REWORK_MIN_EDITS=3` / `DUP_MATCH_THRESHOLD=0.9` 只在 `config.py`；AST 守门锁"模块级赋值只允许出现在 config.py"。生成器造"卡阈值"样例时**读 config**，不许抄数值。
+- **K1** 阈值单点：`REWORK_MIN_VERSIONS` / `REWORK_MIN_EDITS` / `DUP_MATCH_THRESHOLD` 三常量只在 `config.py` 赋值（**数值以 config.py 为准，文档不抄第二份**）；AST 守门锁"模块级赋值只允许出现在 config.py"。生成器造"卡阈值"样例时**读 config**，不许抄数值。
 - **K2** 退出码：0 成功 / 1 内部错误 / 2 用法 / 3 未发现源 / 4 阶段未就绪（M2 起逐项退役；退役 = 删常量+改 test_cli+改 plan/07）。
 - **K3** IR 唯一契约：下游只认 IR；`KINDS` 枚举序已锁测试。
 - **K4** 版本链只来自 file-history 实读；缺失 → `insufficient_data`；禁止反推。

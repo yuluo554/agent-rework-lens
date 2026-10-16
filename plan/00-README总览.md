@@ -55,13 +55,13 @@
 
 | 承诺项 | 素材来源 | 交付物内可达性 | 核验方式 | 状态 |
 |---|---|---|---|---|
-| 会话日志解析器（Claude Code + Codex 双源 → 统一 IR） | `~/.claude/projects/*/*.jsonl` ✅ 本机 125 个 + `~/.codex/sessions/**/rollout-*.jsonl` ✅ 本机 220 个 | 解析器随包；零第三方重依赖 | 同一日志 → 同一 IR；双源样例逐字段核对 | ✅ M2（11 case truth 回归 + 双跑 IR 一致；见 HANDOFF-M3.md） |
-| **返工检测引擎**（版本快照链 v1→v2→v3 反复覆盖 / 同文件多次 Edit） | `~/.claude/file-history/<session>/<hash>@vN` ✅ 本机 68 个快照 / 9 会话（`trackedFileBackups` 结构实测） | 返工检测随包（读本地快照，不上传） | 合成会话植入真值对账；真实样本人工抽验 | ✅ M3（11 case 引擎 truth 对账 + 阈值单点测试；见 HANDOFF-M4.md） |
+| 会话日志解析器（Claude Code + Codex 双源 → 统一 IR） | `~/.claude/projects/*/*.jsonl` ✅ 本机 125 个 + `~/.codex/sessions/**/rollout-*.jsonl` ✅ 本机 220 个 | 解析器随包；零第三方重依赖 | 同一日志 → 同一 IR；双源样例逐字段核对 | ✅ M2（case truth 回归 + 双跑 IR 一致；见 HANDOFF-M3.md） |
+| **返工检测引擎**（版本快照链 v1→v2→v3 反复覆盖 / 同文件多次 Edit） | `~/.claude/file-history/<session>/<hash>@vN` ✅ 本机 68 个快照 / 9 会话（`trackedFileBackups` 结构实测） | 返工检测随包（读本地快照，不上传） | 合成会话植入真值对账；真实样本人工抽验 | ✅ M3（case 引擎 truth 对账 + 阈值单点测试；见 HANDOFF-M4.md） |
 | Read:Edit 比与"新建 vs 复用"指标 | 会话 IR 的 read/edit/write 事件 + 符号提取 | 指标随包；阈值口径一处定义 | 合成基准逐例核验；阈值改一处全链路同变 | ✅ M3（除零 → None / 归一化冻结口径 / K5 披露单点；见 HANDOFF-M4.md） |
 | 报告输出（本地 HTML / Markdown） | 引擎结果 + 证据锚点（会话 id / 行号 / 版本文件名） | 报告为纯本地文件，零上传 | 报告只渲染结果（零判定逻辑）；锚点可回溯 | ✅ M5（`--report-md/--report-html` + 锚点列 + 披露制 + 三方对账锁测试；见 HANDOFF-M6.md） |
-| **合成会话基准 + 植入真值** | 程序化生成的假项目名 / 假路径会话日志 | 基准零外部依赖、零 API，一条命令复现 | 真值由生成器同步标注；指标口径进 README | ✅ M4（`arl bench` 11 case truth 全对账 + 覆盖率门槛 manifest 强制 + 探活变异；见 HANDOFF-M5.md） |
+| **合成会话基准 + 植入真值** | 程序化生成的假项目名 / 假路径会话日志 | 基准零外部依赖、零 API，一条命令复现 | 真值由生成器同步标注；指标口径进 README | ✅ M4（`arl bench` truth 全对账 + 覆盖率门槛 manifest 强制 + 探活变异；审计修复后 12 case 含粗匹配两级；见 HANDOFF-M5.md） |
 | 官方文档锚点（transcript 路径 / 字段） | Claude Code hooks 文档 ✅ 直连核对 | 文档引用 | 字段名 `session_id` / `transcript_path` / `cwd` 已在文档 "Common input fields" 核到 | ✅ **已核对**（2026-10-15） |
-| 发布闭环（tag + Release + 留档） | GitHub 公开仓库 | Release 附源码 zip + 留档 sha256 | 本地留有产物副本可 sha256 复验 | ✅ M6（tag `v0.1.0-m6` + Release draft=false + 附件 sha256 复验；见 RELEASE-M6.md） |
+| 发布闭环（tag + Release + 留档） | GitHub 公开仓库 | Release 附源码 zip + 留档 sha256 | **仓库内耐久副本 `release/` + sha256 留档可复验** | ✅ M6（tag `v0.1.0-m6` + Release draft=false + 附件 sha256 复验；审计修复后耐久副本见 RELEASE-M6.md §六） |
 | 完整 AST 克隆检测 | 扩展项（工程量） | 不入首期 | — | ⬜ 扩展 |
 | 跨会话趋势 / CI 集成 | 扩展项 | 不入首期 | — | ⬜ 扩展 |
 
@@ -73,10 +73,11 @@
 | M1 | **数据先行**：会话格式核对（Claude jsonl / Codex rollout / file-history 字段逐样本核对）+ 合成会话日志真值生成（植入真值 + 覆盖度门槛口径），**未核对字段不得落库/生效** | ✅ 完成 2026-10-15（R1–R6 核对闭环 + 冻结 fixtures + 守门 8 项；详见 [06](06-里程碑.md) 与 [HANDOFF-M2.md](HANDOFF-M2.md)） |
 | M2 | 会话日志解析：双源 → 统一中间表示（Unified Session IR），路径自适应发现，缺失字段标 `unknown` | ✅ 完成 2026-10-15（双源解析器 + file-history 实读 + scan 接入；退出码 4 退役；详见 [06](06-里程碑.md) 与 [HANDOFF-M3.md](HANDOFF-M3.md)） |
 | M3 | 指标算法：返工检测（版本链 + Edit 次数）+ Read:Edit 比 + "新建 vs 复用"粗匹配（阈值一处定义） | ✅ 完成 2026-10-15（三态判定 + 链归属实读 + 阈值校准定稿 D-M3-1；详见 [06](06-里程碑.md) 与 [HANDOFF-M4.md](HANDOFF-M4.md)） |
-| M4 | 基准：合成会话基准跑通，检测率 / 误报率口径进 README，一条命令复现 | ✅ 完成 2026-10-15（`arl bench` 11 case truth 全对账 + 覆盖率门槛 manifest 强制 + 探活变异；详见 [06](06-里程碑.md) 与 [HANDOFF-M5.md](HANDOFF-M5.md)） |
+| M4 | 基准：合成会话基准跑通，检测率 / 误报率口径进 README，一条命令复现 | ✅ 完成 2026-10-15（`arl bench` truth 全对账 + 覆盖率门槛 manifest 强制 + 探活变异；审计修复后 12 case 覆盖粗匹配两级；详见 [06](06-里程碑.md) 与 [HANDOFF-M5.md](HANDOFF-M5.md)） |
 | M5 | 交付：CLI + 报告输出（Markdown / HTML）+ 技术报告 + README 演示 | ✅ 完成 2026-10-15（报告成稿 + docs/TECHNICAL-REPORT.md + 干净环境双 venv 逐条跑；详见 [06](06-里程碑.md) 与 [HANDOFF-M6.md](HANDOFF-M6.md)） |
 | M6 | 发布：**git tag + GitHub Release 附产物 + 发布留档三件套**，发布 GitHub **公开**仓库 | ✅ 完成 2026-10-15（脱敏全 0 + CI 三腿全绿 + tag/Release sha256 留档；详见 [06](06-里程碑.md) 与 [RELEASE-M6.md](RELEASE-M6.md)） |
 | M7 | 收尾固化（发布后）：topics/元信息核验、材料固化、缓议项清零、品牌隔离复查 | ✅ 完成 2026-10-15（元信息核验+topics 补齐、缓议项 10 条清零、品牌隔离终检、计数一致复核；详见 [WRAPUP-M7.md](WRAPUP-M7.md)——**系列完结**） |
+| 审计修复 | 发布后审计缺陷修复：提交邮箱脱敏重写 + tag 重打至发布态 + 粗匹配第二级入 bench + Release 产物耐久副本 + 文档口径对齐 | ✅ 完成 2026-10-16（详见 [RELEASE-M6.md](RELEASE-M6.md) §六；末态 154+154 测试 / 12 case 基准 / 51 冻结件） |
 
 **里程碑 DoD 纪律**：每个里程碑收尾时在 [data/README.md](../data/README.md) 台账回填实测证据；详细 DoD / 风险降级 / 可演示命令见 [06-里程碑.md](06-里程碑.md)。
 **M6 DoD 三件套（硬性）**：①`git tag`；②**GitHub Release 附产物**（本地留有 release zip 等产物副本并 **sha256 留档可复验**）；③**发布留档文件**（如 `plan/RELEASE-M6.md`）——"代码写完"≠"题做完"，缺任一项即 M6 未达成。
